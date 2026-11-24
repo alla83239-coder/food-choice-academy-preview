@@ -719,3 +719,11 @@ body.no-bar #app{padding:0;max-width:none}
 .resource-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--gradGold);color:var(--forest)}
 .resource-launch b{font-size:14px}.resource-launch small{font-size:11px;color:var(--muted);line-height:1.4}
 @media(max-width:720px){.resource-launch-grid{grid-template-columns:1fr}.resource-launch{display:grid;grid-template-columns:36px 1fr;column-gap:10px;align-items:center}.resource-launch small{grid-column:2}}
+
+.final-stage-nav{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 4px}
+.final-stage-nav button{padding:11px 16px;border:1px solid var(--goldLine);border-radius:12px;background:#fff;color:var(--ink);font-weight:800;font-size:12px}
+.final-stage-nav button.active{background:var(--gradGold);color:var(--forest);border-color:var(--gold)}
+.final-stage-panel[hidden]{display:none!important}
+.final-stage-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.final-stage-actions .muted{margin-right:auto}
+@media(max-width:620px){.final-stage-nav{display:grid;grid-template-columns:1fr}.final-stage-actions{align-items:stretch}.final-stage-actions>*{width:100%}.final-stage-actions .muted{margin-right:0}}
