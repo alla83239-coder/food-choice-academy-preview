@@ -711,3 +711,11 @@ body.no-bar #app{padding:0;max-width:none}
 #mainNav .nav-btn{flex:0 0 auto}
 @media(max-width:1080px){#topbar{gap:8px}.logo{font-size:12px}.nav-btn{padding:8px 10px;font-size:11px}}
 @media(max-width:760px){#topbar{gap:8px;padding:0 10px}.logo small{display:none}.logo{font-size:11px}.mainnav{margin-left:0}.nav-btn{padding:8px 9px;font-size:10.5px}.tb-right{gap:5px}}
+
+.resource-launcher{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.resource-launch-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.resource-launch{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left;padding:16px;border:1px solid var(--goldLine);border-radius:14px;background:linear-gradient(145deg,#fffdf8,#f6f0e1);box-shadow:0 5px 14px rgba(16,42,32,.06);transition:transform .18s,box-shadow .18s}
+.resource-launch:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(16,42,32,.1)}
+.resource-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--gradGold);color:var(--forest)}
+.resource-launch b{font-size:14px}.resource-launch small{font-size:11px;color:var(--muted);line-height:1.4}
+@media(max-width:720px){.resource-launch-grid{grid-template-columns:1fr}.resource-launch{display:grid;grid-template-columns:36px 1fr;column-gap:10px;align-items:center}.resource-launch small{grid-column:2}}
