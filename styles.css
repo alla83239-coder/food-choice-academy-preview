@@ -502,7 +502,7 @@ body.no-bar #app{padding:0;max-width:none}
 .mission-audio-row audio,.audio-row audio{max-width:100%;width:min(420px,100%)}
 .food-photo{width:82px;height:68px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:11px;background:#e8eee5;font-size:28px}
 .food-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.food-photo span{position:relative;z-index:1;text-shadow:0 1px 3px #fff}
+.food-photo span{display:none;position:relative;z-index:1;text-shadow:0 1px 3px #fff}.food-photo.no-photo span{display:block}
 .error-select{border:1px solid var(--goldLine);border-radius:5px;background:#fff8e8;padding:2px 5px;font:inherit;cursor:pointer}
 .error-select.selected-error{background:#ffe2a8;border-color:var(--warn);box-shadow:0 0 0 2px #f3d399}
 .media-answer-row{grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr)}
