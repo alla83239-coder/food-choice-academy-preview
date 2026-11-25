@@ -187,6 +187,14 @@ completeTask=function(id,res,zone){
  if(zone&&zone.nodeType===1){
   zone.innerHTML=donePanelHTML(id);
   zone.classList.add("fca-task-complete");
+  const screen=document.querySelector("#app .screen");
+  if(screen){
+   screen.querySelectorAll('[data-action="next-step"]').forEach(function(button){
+    if(!zone.contains(button))button.remove();
+   });
+   zone.querySelectorAll('[data-action="next-step"]').forEach(function(button,index){if(index>0)button.remove();});
+  }
+  zone.scrollIntoView({behavior:"smooth",block:"nearest"});
  }
 };
 const fcaNextOneScreenBase=Actions["next-step"];
@@ -220,14 +228,20 @@ Actions["next-step"]=function(btn){
  }
  return fcaNextOneScreenBase(btn);
 };
-/* Remove any stale duplicate audio and review/restart controls from the Skills Test. */
+/* One source recording per Skills Test question; keep the actual player visible. */
 const fcaSkillsOneAudioBase=renderSkillsTestPanelV13;
 renderSkillsTestPanelV13=function(el){
  fcaSkillsOneAudioBase(el);
  const body=el.querySelector("#skillsPartBody");if(!body)return;
- body.querySelector(".fca-audio-panel")?.remove();
- const players=Array.from(body.querySelectorAll("audio"));
- players.slice(1).forEach(function(audio){const panel=audio.closest(".skills-audio,.fca-audio-panel");if(panel)panel.remove();else audio.remove();});
+ const seen=new Set();
+ Array.from(el.querySelectorAll("audio")).forEach(function(audio){
+  const source=audio.currentSrc||audio.getAttribute("src")||audio.querySelector("source")?.getAttribute("src")||"";
+  if(!source)return;
+  if(seen.has(source)){
+   const panel=audio.closest(".fca-audio-panel,.audio-row,.mission-audio-row");
+   if(panel)panel.remove();else audio.remove();
+  }else seen.add(source);
+ });
  body.querySelectorAll("[data-st-restart]").forEach(function(button){button.remove();});
  body.innerHTML=body.innerHTML
   .replaceAll("You can retry after a hint.","One attempt per question. An incorrect answer lowers the score only.")
