@@ -573,6 +573,52 @@ function buildCanteenMenu(zone){
  evaluate();
 }
 
+
+function buildCarbonFootprint(zone){
+ const foods=[
+  {id:"beef",name:"Beef (beef herd)",factor:99.48,group:"Protein"},
+  {id:"lamb",name:"Lamb and mutton",factor:39.72,group:"Protein"},
+  {id:"poultry",name:"Poultry meat",factor:9.87,group:"Protein"},
+  {id:"eggs",name:"Eggs",factor:4.67,group:"Protein"},
+  {id:"rice",name:"Rice",factor:4.45,group:"Carbohydrate"},
+  {id:"tofu",name:"Tofu",factor:3.16,group:"Protein"},
+  {id:"peas",name:"Peas and pulses",factor:0.98,group:"Protein"},
+  {id:"apples",name:"Apples",factor:0.43,group:"Fruit"},
+  {id:"potatoes",name:"Potatoes",factor:0.46,group:"Carbohydrate"},
+  {id:"tomatoes",name:"Tomatoes",factor:2.09,group:"Vegetable"}
+ ];
+ const old=S.carbonBasket&&S.carbonBasket.quantities||{};
+ zone.innerHTML='<div class="card reading"><div class="tag">Academy research tool · Global averages</div><h3 style="margin:12px 0 8px">Estimate the footprint of a food basket</h3><p>Enter the amount of each ingredient in grams. The calculator converts grams into kilograms and multiplies the quantity by the reference greenhouse-gas factor.</p><div class="gnote"><span>'+icon("info")+'</span><span><b>Calculation:</b> quantity in kg × kg CO₂e per kg of food = estimated kg CO₂e. Figures are global averages for 2010, based on Poore and Nemecek (2018), as processed by Our World in Data. They are not measurements of your local supplier or a complete footprint for a recipe.</span></div></div>'+
+ '<div class="card"><div class="table-scroll"><table class="gtable"><thead><tr><th>Ingredient</th><th>Group</th><th>kg CO₂e / kg food</th><th>Quantity (g)</th><th>Estimate (kg CO₂e)</th></tr></thead><tbody id="carbonRows">'+foods.map(function(food){return '<tr><td><b>'+food.name+'</b></td><td>'+food.group+'</td><td>'+food.factor.toFixed(2)+'</td><td><input class="carbon-qty" data-id="'+food.id+'" type="number" min="0" max="5000" step="25" value="'+(Number(old[food.id])||0)+'" style="width:84px" aria-label="Quantity in grams for '+food.name+'"></td><td class="carbon-result" data-result="'+food.id+'">0.000</td></tr>';}).join("")+'</tbody></table></div><div class="footer-bar"><b>Total: <span id="carbonTotal">0.000 kg CO₂e</span></b><button type="button" class="btn btn-gold" id="carbonSave">Save footprint estimate '+icon("check")+'</button></div></div>'+
+ '<div class="card soft"><b>Interpret your estimate</b><p class="small muted" id="carbonInterpretation">Add at least three ingredients, including a protein source and a plant-based food.</p><p class="small muted">The factors represent food categories rather than every brand or recipe. Production method, land use, packaging, refrigeration, transport and waste can change a real product footprint.</p><p><a href="https://ourworldindata.org/grapher/ghg-per-kg-poore?tab=table" target="_blank" rel="noopener">Our World in Data · Greenhouse gas emissions per kilogram of food</a></p></div>';
+ function calculate(){
+  const quantities={},used=[];let total=0;
+  foods.forEach(function(food){
+   const q=Math.max(0,Number($('.carbon-qty[data-id="'+food.id+'"]',zone).value)||0);
+   quantities[food.id]=q;const kg=q/1000*food.factor;total+=kg;
+   $('.carbon-result[data-result="'+food.id+'"]',zone).textContent=kg.toFixed(3);
+   if(q>0)used.push({id:food.id,name:food.name,group:food.group,grams:q,factor:food.factor,kgCO2e:kg});
+  });
+  $("#carbonTotal",zone).textContent=total.toFixed(3)+" kg CO₂e";
+  const highest=used.slice().sort(function(a,b){return b.kgCO2e-a.kgCO2e;})[0];
+  $("#carbonInterpretation",zone).textContent=used.length?used.length+" ingredients included · "+total.toFixed(3)+" kg CO₂e estimated. Largest contribution: "+highest.name+". Compare this basket with a plant-rich alternative.":"Add at least three ingredients, including a protein source and a plant-based food.";
+  return {quantities:quantities,used:used,total:total};
+ }
+ zone.addEventListener("input",function(e){if(e.target.matches(".carbon-qty"))calculate();});
+ $("#carbonSave",zone).addEventListener("click",function(e){
+  const result=calculate();const hasProtein=result.used.some(function(x){return x.group==="Protein";});
+  const hasPlant=result.used.some(function(x){return x.group==="Fruit"||x.group==="Vegetable"||x.id==="peas"||x.id==="tofu"||x.id==="rice"||x.id==="potatoes";});
+  if(result.used.length<3||!hasProtein||!hasPlant){toast("Choose at least three ingredients, including a protein source and a plant-based food.","info");return;}
+  S.carbonBasket={quantities:result.quantities,items:result.used,total:result.total,reference:"Poore & Nemecek (2018), processed by Our World in Data; global averages for 2010.",unit:"kg CO₂e"};
+  save();noteAnswer(true,e,30);
+  completeTask("3a-carbon",{score:3,max:3,errors:0,xp:30,log:[{q:"At least three ingredients entered",user:"met",correct:"met",ok:true},{q:"Protein source included",user:"met",correct:"met",ok:true},{q:"Plant-based food included",user:"met",correct:"met",ok:true}]},zone);
+  const resultCard=document.createElement("div");resultCard.className="outcome";
+  resultCard.innerHTML='<span class="tag">'+icon("check")+' Estimate saved</span><h3>'+result.total.toFixed(3)+' kg CO₂e</h3><p>The estimate is saved to your project portfolio. Use the same quantities to compare another menu.</p>';
+  zone.appendChild(resultCard);
+ });
+ calculate();
+}
+
 const LESSONS=[
 {code:"3A",theme:"3a",img:"l3a",title:"The Real Cost of Food",badge:0,sub:"Reading & Vocabulary • CLIL: Environmental Science",problem:"The canteen throws away <b>66 kg of packaging every week</b> — 93% single-use plastic. Understand the real cost of food before you fix it.",objectives:{content:["Trace the life cycle of a food product","Explain carbon footprint, food miles and packaging waste"],language:["7 compound nouns & adjectives","Reading for specific information","Sequencing a process with present simple verbs"]},quote:{who:"harper",text:"You turned our rubbish into evidence. Now I see where the plastic comes from!"},steps:[
 {tag:"Vocabulary",ic:"book",title:"Eco Vocabulary Lab",task:"3a-vocab",build(b){b.innerHTML=stepShell("Vocabulary","book","Eco Vocabulary Lab","Match the compound words to their definitions. Beat 60 seconds for a bonus achievement!")+taskCard();engMatch($(".task-zone",b),{id:"3a-vocab",pairs:VOC3A,speedAch:true});}},
@@ -584,6 +630,7 @@ const LESSONS=[
  '<div class="card"><div class="task-zone"></div></div>';
  engOrder($(".task-zone",b),{id:"3a-cycle",items:CYCLE,hint:"Arrange the full journey: growing and harvesting → factory processing → packaging → transport and refrigeration → buying and drinking → recycling."});
 }},
+{tag:"Project Research",ic:"leaf",title:"Carbon Footprint Calculator",task:"3a-carbon",build(b){b.innerHTML=stepShell("Project Research","leaf","Carbon Footprint Calculator","Compare the greenhouse-gas footprint of ingredients by entering quantities for your proposed menu. Use the results as a transparent estimate, not a supplier-specific measurement.")+`<div class="card"><div class="task-zone"></div></div>`;buildCarbonFootprint($(".task-zone",b));}},
 {tag:"Case Decision",ic:"scale",title:"The Packaging Policy",decision:"pack",build(b){b.innerHTML=stepShell("Case Decision","scale","The Packaging Policy","There is no perfect answer — weigh the trade-offs.")+`<div class="card"><div class="task-zone"></div></div>`;buildDecision($(".task-zone",b),"pack",{problem:"Choose a new packaging policy for the canteen. The budget is limited, but the planet is watching.",options:[{id:"a",icon:"coin",title:"Keep single-use plastic",desc:"Cheapest option, nothing changes for staff.",fx:{eco:-10,budget:50},feedback:"The budget breathes — but 93% of packaging stays single-use."},{id:"b",icon:"recycle",title:"Biodegradable cartons + recycling station",desc:"Cartons that break down naturally + labelled bins.",fx:{eco:15,budget:-60},feedback:"A balanced choice! Waste is sorted like at a real recycling centre."},{id:"c",icon:"leaf",title:"Zero-packaging dispensers",desc:"Bulk dispensers; students bring reusable containers.",fx:{eco:25,budget:-100},feedback:"Bold! Almost zero waste later, but expensive setup."}]});}}
 ]},
 {code:"3B",theme:"3b",img:"l3b",title:"Healthy & Sustainable School Canteen",badge:1,sub:"Teen Nutrition • Menu Planning • CLIL: Food Sustainability",problem:"The school wants to open a canteen for teenagers aged 15–18. Your team must use reliable nutrition evidence, compare foods and build a balanced, affordable menu that can later be checked for its carbon footprint.",objectives:{content:["Investigate adolescent nutrition and age-appropriate macronutrient ranges","Compare food sources and identify nutritious, practical ingredients","Use evidence to plan a varied menu for teenagers"],language:["some / any / much / many / a few / a little / a lot of","How much…? vs How many…?","Comparing quantities and giving evidence-based recommendations"]},quote:{who:"jess",text:"Your report matched my coach's advice — rice, not chocolate, before a race!"},steps:[
@@ -1374,7 +1421,7 @@ const FC_MISSION_3B_PROJECT = {
 };
 const FOOD_CHOICE_MISSIONS = [
  {title:"The Mystery",subtitle:"What connects these three pictures?",chapter:"Launch",image:"food",target:null,brief:"Study the three images. What do they have in common? What food-choice problem might connect them?"},
- {title:"The Real Cost",subtitle:"Read the evidence behind everyday food",chapter:"3A · The Real Cost of Food",image:"l3a",target:{l:0,s:0},brief:"Investigate packaging, food waste and the environmental cost hidden behind ordinary food choices.",requires:["3a-vocab","3a-read"]},
+ {title:"The Real Cost",subtitle:"Read the evidence behind everyday food",chapter:"3A · The Real Cost of Food",image:"l3a",target:{l:0,s:0},brief:"Investigate packaging, food waste and the environmental cost hidden behind ordinary food choices.",requires:["3a-vocab","3a-read","3a-carbon"]},
  {title:"Food Footprints",subtitle:"Follow a product from farm to table",chapter:"3A · Life Cycle",image:"market",target:{l:0,s:2},brief:"Trace the life cycle of orange juice and decide which packaging policy is defensible.",requires:["3a-cycle"],decision:"pack"},
  {title:"Teen Nutrition Research",subtitle:"Establish evidence-based needs for ages 15–18",chapter:"3B · Nutrition Research",image:"l3b",target:{l:1,s:0},brief:"Investigate adolescent energy needs, macronutrients, food groups and practical healthy eating. Record the evidence your canteen menu will need.",requires:["3b-profiles","3b-odd","3b-health-questionnaire","3b-client-interview"]},
  {title:"Nutrition Evidence & Food Choices",subtitle:"Compare foods by nutrients, function and suitability",chapter:"3B · Nutrition Evidence",image:"grammar",target:{l:1,s:2},brief:"Use food and nutrition evidence to compare ingredients, identify useful sources of protein, fats and carbohydrates, and justify choices for a teen canteen.",requires:["3b-gaps","3b-expert","3b-athlete"]},
