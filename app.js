@@ -1785,7 +1785,7 @@ Actions["start-fc-mission"]=function(btn){
    start++;
   }
   if(start>=LESSONS[chapter].steps.length){toast("The source tasks are complete. Return to the mission map.","info","check");App.go({name:"missions"});return;}
-  S.stepPos[chapter]=Math.max(S.stepPos[chapter],start);save();
+  S.stepPos[chapter]=start;save();
   App.go({name:"step",l:chapter,s:start});
  }
 };
