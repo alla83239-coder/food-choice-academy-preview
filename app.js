@@ -619,6 +619,65 @@ function buildCarbonFootprint(zone){
  calculate();
 }
 
+
+function buildVendingAssortment(zone){
+ const products=[
+  {id:"apple",name:"Fresh apple",group:"Fruit",price:0.7,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"banana",name:"Banana",group:"Fruit",price:0.7,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"water",name:"Still water",group:"Drink",price:0.8,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"milk",name:"Plain milk",group:"Drink / dairy",price:0.9,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
+  {id:"yoghurt",name:"Plain yoghurt with berries",group:"Dairy snack",price:1.2,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
+  {id:"chicken",name:"Wholegrain chicken sandwich",group:"Meal",price:2.8,storage:"Chilled",allergens:"Gluten; check recipe for egg or milk",healthy:true,protein:true},
+  {id:"hummus",name:"Hummus and vegetable wrap",group:"Meal",price:2.4,storage:"Chilled",allergens:"Gluten; sesame",healthy:true,protein:true},
+  {id:"nuts",name:"Unsalted mixed nuts",group:"Protein snack",price:1.0,storage:"Ambient; sealed pack",allergens:"Peanuts / tree nuts",healthy:true,protein:true},
+  {id:"oatbar",name:"Oat bar · lower added sugar",group:"Wholegrain snack",price:0.9,storage:"Ambient",allergens:"Gluten; check recipe for nuts",healthy:true,protein:false},
+  {id:"cheese",name:"Cheese and oatcakes",group:"Snack",price:1.1,storage:"Chilled",allergens:"Milk; gluten",healthy:true,protein:true},
+  {id:"juice",name:"Orange juice carton",group:"Drink",price:1.3,storage:"Ambient unopened; chill after opening",allergens:"None",healthy:false,protein:false},
+  {id:"cola",name:"Cola can",group:"Drink",price:1.2,storage:"Ambient",allergens:"None",healthy:false,protein:false},
+  {id:"candy",name:"Sweets",group:"Confectionery",price:0.9,storage:"Ambient",allergens:"Check label",healthy:false,protein:false}
+ ];
+ const selected=new Set(S.vendingStock&&S.vendingStock.ids||["apple","water","yoghurt","chicken","hummus","nuts","oatbar"]);
+ zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Vending Machine Procurement</b><p>Select the products your school will offer. Consider student needs, storage, allergens, shelf life, price and a balanced range.</p></div></div>'+
+ '<div class="gnote"><span>'+icon("info")+'</span><span>Prices are illustrative planning estimates in GBP, not supplier quotations. Verify product labels, allergen declarations, chilled-chain requirements and local school food policy before purchasing.</span></div>'+
+ '<div class="card"><div class="small muted" style="margin-bottom:10px">Choose 6–8 products. The assortment should include water, fruit, a useful protein option and a more substantial meal or snack.</div><div id="vendingProductGrid" class="fca-option-grid">'+products.map(function(p){return '<button type="button" class="opt vending-product'+(selected.has(p.id)?' right':'')+'" data-id="'+p.id+'"><b>'+p.name+'</b><small class="muted">'+p.group+' · £'+p.price.toFixed(2)+'</small><small class="muted">Storage: '+p.storage+'</small><small class="muted">Allergens: '+p.allergens+'</small><small>'+(p.healthy?'Suitable everyday choice':'Occasional / limit')+'</small></button>';}).join("")+'</div></div>'+
+ '<div class="card soft"><h3>Assortment check</h3><div id="vendingChecks"></div><p class="small muted" id="vendingCount"></p></div>'+
+ '<div class="footer-bar"><span class="small muted" id="vendingFeedback">Choose 6–8 items.</span><button type="button" class="btn btn-gold" id="vendingSave" disabled>Save vending assortment '+icon("check")+'</button></div>';
+ function evaluate(){
+  const chosen=products.filter(function(p){return selected.has(p.id);});
+  const checks=[
+   {label:"6–8 products selected",ok:chosen.length>=6&&chosen.length<=8},
+   {label:"Still water is included",ok:selected.has("water")},
+   {label:"At least one fresh fruit option is included",ok:selected.has("apple")||selected.has("banana")},
+   {label:"At least one useful protein option is included",ok:chosen.some(function(p){return p.protein;})},
+   {label:"A substantial meal or wholegrain snack is included",ok:selected.has("chicken")||selected.has("hummus")||selected.has("oatbar")||selected.has("cheese")},
+   {label:"Allergen and storage information has been reviewed",ok:true}
+  ];
+  $("#vendingChecks",zone).innerHTML=checks.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'x')+' '+c.label+'</div>';}).join("");
+  $("#vendingCount",zone).textContent=chosen.length+" products · illustrative selling-price total £"+chosen.reduce(function(n,p){return n+p.price;},0).toFixed(2)+" (one pack/unit of each)";
+  const ok=checks.every(function(c){return c.ok;});
+  $("#vendingSave",zone).disabled=!ok;
+  $("#vendingFeedback",zone).textContent=ok?"Assortment meets the planning checks.":"Review the missing requirements before saving.";
+  return {chosen:chosen,checks:checks,score:checks.filter(function(c){return c.ok;}).length};
+ }
+ zone.addEventListener("click",function(e){
+  const btn=e.target.closest(".vending-product");if(!btn)return;
+  const id=btn.dataset.id;
+  if(selected.has(id)){selected.delete(id);btn.classList.remove("right");}
+  else{selected.add(id);btn.classList.add("right");}
+  evaluate();
+ });
+ $("#vendingSave",zone).addEventListener("click",function(e){
+  const result=evaluate();if($("#vendingSave",zone).disabled)return;
+  S.vendingStock={ids:result.chosen.map(function(p){return p.id;}),products:result.chosen.map(function(p){return {id:p.id,name:p.name,group:p.group,price:p.price,storage:p.storage,allergens:p.allergens};}),score:result.score,max:result.checks.length,createdAt:Date.now()};
+  save();noteAnswer(true,e,40);
+  completeTask("3c-vending-stock",{score:result.score,max:result.checks.length,errors:0,xp:40,log:result.checks.map(function(c){return {q:c.label,user:c.ok?"met":"not met",correct:"met",ok:c.ok};})},zone);
+  const done=document.createElement("div");done.className="outcome";
+  done.innerHTML='<span class="tag">'+icon("check")+' Assortment saved</span><h3>'+result.chosen.length+' vending products selected</h3><p>'+result.chosen.map(function(p){return esc(p.name);}).join(" · ")+'</p><p>Next: confirm wholesale supplier, pack size, expiry rules, retail margin and restocking frequency.</p>';
+  zone.insertBefore(done,zone.firstChild);
+ });
+ evaluate();
+}
+
 const LESSONS=[
 {code:"3A",theme:"3a",img:"l3a",title:"The Real Cost of Food",badge:0,sub:"Reading & Vocabulary • CLIL: Environmental Science",problem:"The canteen throws away <b>66 kg of packaging every week</b> — 93% single-use plastic. Understand the real cost of food before you fix it.",objectives:{content:["Trace the life cycle of a food product","Explain carbon footprint, food miles and packaging waste"],language:["7 compound nouns & adjectives","Reading for specific information","Sequencing a process with present simple verbs"]},quote:{who:"harper",text:"You turned our rubbish into evidence. Now I see where the plastic comes from!"},steps:[
 {tag:"Vocabulary",ic:"book",title:"Eco Vocabulary Lab",task:"3a-vocab",build(b){b.innerHTML=stepShell("Vocabulary","book","Eco Vocabulary Lab","Match the compound words to their definitions. Beat 60 seconds for a bonus achievement!")+taskCard();engMatch($(".task-zone",b),{id:"3a-vocab",pairs:VOC3A,speedAch:true});}},
@@ -695,6 +754,7 @@ const LESSONS=[
 {code:"3C",theme:"3c",img:"l3c",title:"The Vending Machine Challenge",badge:2,sub:"Listening & Functional Language • CLIL: Consumer Choices",problem:"The head teacher wants a <b>vending machine</b>. Four people describe their experience — then a supplier makes an offer you can't ignore.",objectives:{content:["Compare vending machines and their impact on eating habits","Weigh commercial offers against health and sustainability"],language:["Listening for key words","Indefinite pronouns: some-, any-, no-, every-","Inviting, accepting, refusing, re-suggesting"]},quote:{who:"harper",text:"Half healthy snacks and fresh fruit? The machine queue is longer than the canteen queue!"},steps:[
 {tag:"Listening",ic:"ear",title:"Key Words: Four Speakers",task:"3c-keys",build(b){b.innerHTML=stepShell("Listening","ear","Key Words: Four Speakers","Play the original recording, then identify the three key words for each speaker.")+`<div class="fca-audio-panel"><div><span class="tag">Original audio · Student’s Book Track 3.2</span><b>Listen before choosing</b><p class="small muted">Playback is manual. Nothing starts automatically.</p></div><audio controls preload="none" src="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/audio/Insight2e_Preint_SB_Track_3.2.mp3"></audio></div><div class="card"><div class="task-zone"></div></div>`;buildKeywords($(".task-zone",b));}},
 {tag:"Listening",ic:"ear",title:"Who Said It?",task:"3c-stat",build(b){b.innerHTML=stepShell("Listening","ear","Who Said It?","Match each statement to a speaker. One statement is extra.")+`<div class="card soft" style="margin-bottom:14px"><div class="spk-grid">${SPEAKERS.map(sp=>`<div>${playerHTML(sp)}<button class="link-btn tr-toggle" data-spk="${sp.id}">Can't hear it? Read transcript</button><div class="transcript" id="tr-${sp.id}">${sp.text}</div></div>`).join("")}</div></div>`+taskCard();bindPlayers(b);engMCQ($(".task-zone",b),{id:"3c-stat",items:STAT3C});}},
+{tag:"Project Deliverable",ic:"shopping-bag",title:"Choose the Vending Machine Assortment",task:"3c-vending-stock",build(b){b.innerHTML=stepShell("Project Deliverable","shopping-bag","Choose the Vending Machine Assortment","Choose a practical range of products for teenagers. Check prices, storage conditions and allergens before you approve the stock list.")+`<div class="card"><div class="task-zone"></div></div>`;buildVendingAssortment($(".task-zone",b));}},
 {tag:"Grammar",ic:"grammar",title:"Some-, Any-, No-, Every-",task:"3c-pro",build(b){b.innerHTML=stepShell("Grammar","grammar","Indefinite Pronouns & Adverbs","Study the reference, then answer one question per screen. Use the progress bar to track the practice.")+`<div class="fca-mission-guide" style="margin-bottom:14px">${avatar("harper",54)}<div><b>Ms Harper · Language Coach</b><p>Look at the meaning first: people, things or places. Then choose the form that fits the sentence.</p></div></div><div class="card soft" style="margin-bottom:14px"><div class="table-scroll"><table class="gtable"><tr><th></th><th>People</th><th>Things</th><th>Places</th></tr><tr><td><b>some-</b></td><td>someone</td><td>something</td><td>somewhere</td></tr><tr><td><b>any-</b></td><td>anyone</td><td>anything</td><td>anywhere</td></tr><tr><td><b>no-</b></td><td>no one</td><td>nothing</td><td>nowhere</td></tr><tr><td><b>every-</b></td><td>everyone</td><td>everything</td><td>everywhere</td></tr></table></div></div>`+taskCard();engGapsStepped($(".task-zone",b),{id:"3c-pro",items:PRO3C});}},
 {tag:"Functional Language",ic:"chat",title:"Invite Roxanna",task:"3c-invite",build(b){b.innerHTML=stepShell("Functional Language","chat","Invite Roxanna","Heather's Café • 'Delicious desserts with half the sugar' • Sat 5 June, 12.30–2.30.")+`<div class="card"><div class="task-zone"></div></div>`;engDialogue($(".task-zone",b),INVITE_SCRIPT);}},
 {tag:"Case Decision",ic:"alert",title:"Emergency: The Supplier Calls",decision:"vend",build(b){b.innerHTML=stepShell("Case Decision","alert","Emergency: The Supplier Calls","Force majeure — a timed decision. Read fast, choose wisely.")+`<div class="card"><div class="task-zone"></div></div>`;buildDecision($(".task-zone",b),"vend",{timer:60,urgent:true,problem:"SnackQuick Ltd calls: 'We'll install a machine for FREE — today only. 80% junk food. Sign now, or the offer goes to another school.'",options:[{id:"a",icon:"coin",title:"Sign the free contract",desc:"Free machine, instant profit. 80% junk food.",fx:{budget:150,health:-20,eco:-10},feedback:"The budget jumps — but the health meter falls hard."},{id:"b",icon:"heart",title:"Refuse & fundraise a healthy machine",desc:"Run a charity event to fund a fresh-food machine.",fx:{health:15,eco:10,budget:-150},feedback:"Expensive but principled: refrigerated fruit, salads and yoghurt."},{id:"c",icon:"scale",title:"Negotiate: 50% healthy + fruit",desc:"Half the slots for apples, salads and water.",fx:{health:8,eco:5,budget:-50},feedback:"Smart negotiation! A compromise the head teacher can defend."}],timeout:{id:"a",icon:"coin",title:"Sign the free contract",desc:"",fx:{budget:150,health:-20,eco:-10},feedback:"You hesitated, and the supplier pushed the contract through."}});}}
@@ -1426,7 +1486,7 @@ const FOOD_CHOICE_MISSIONS = [
  {title:"Teen Nutrition Research",subtitle:"Establish evidence-based needs for ages 15–18",chapter:"3B · Nutrition Research",image:"l3b",target:{l:1,s:0},brief:"Investigate adolescent energy needs, macronutrients, food groups and practical healthy eating. Record the evidence your canteen menu will need.",requires:["3b-profiles","3b-odd","3b-health-questionnaire","3b-client-interview"]},
  {title:"Nutrition Evidence & Food Choices",subtitle:"Compare foods by nutrients, function and suitability",chapter:"3B · Nutrition Evidence",image:"grammar",target:{l:1,s:2},brief:"Use food and nutrition evidence to compare ingredients, identify useful sources of protein, fats and carbohydrates, and justify choices for a teen canteen.",requires:["3b-gaps","3b-expert","3b-athlete"]},
  {title:"Menu Design & Healthy Choices",subtitle:"Turn nutrition evidence into a practical menu",chapter:"3B · Menu Planning",image:"berries",target:{l:1,s:5},brief:"Translate the research into balanced meal choices for teenagers. Compare food groups, portions, variety, affordability and the needs of different students.",requires:["3b-fad","3b-fad-table","3b-fad-vocab","3b-plan"]},
- {title:"Vending Machine & Smart Procurement",subtitle:"Choose stock, suppliers and a responsible assortment",chapter:"3C · Consumer Choices",image:"l3c",target:{l:2,s:0},brief:"Evaluate the vending-machine proposal, select suitable products, assess supplier terms and plan a healthy, affordable assortment with clear storage and replenishment rules.",requires:["3c-keys","3c-stat"],decision:"vend"},
+ {title:"Vending Machine & Smart Procurement",subtitle:"Choose stock, suppliers and a responsible assortment",chapter:"3C · Consumer Choices",image:"l3c",target:{l:2,s:0},brief:"Evaluate the vending-machine proposal, select suitable products, assess supplier terms and plan a healthy, affordable assortment with clear storage and replenishment rules.",requires:["3c-keys","3c-stat","3c-vending-stock"],decision:"vend"},
  {title:"Keep Talking",subtitle:"Negotiate a plan in English",chapter:"3C · Functional Language",image:"chat",target:{l:2,s:2},brief:"Practise indefinite pronouns, invitations, polite refusals and alternative suggestions.",requires:["3c-pro","3c-invite"]},
  {title:"Junk Food Investigation",subtitle:"Read critically and inspect packaging",chapter:"3D · Junk Food Heaven",image:"burger",target:{l:3,s:0},brief:"Analyse the writer’s viewpoint, then build accurate vocabulary for food containers.",requires:["3d-read","3d-cont"]},
  {title:"Grammar Workshop",subtitle:"Add precise information",chapter:"3D · Relative Clauses",image:"grammar",target:{l:3,s:2},brief:"Use relative pronouns and adverbs to describe people, products, places, ownership and time.",requires:["3d-rel","3d-cook"]},
