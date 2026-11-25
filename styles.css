@@ -855,3 +855,18 @@ body.no-bar #app{padding:0;max-width:none}
 .fca-activity-intro p{margin:4px 0 0;font-size:16px;line-height:1.45}
 .preview-mode-note{display:inline-block;margin-top:12px;padding:8px 12px;border:1px solid rgba(233,206,126,.65);border-radius:10px;color:#f5e8c6;font-size:12px;font-weight:800;letter-spacing:.04em}
 @media(max-width:640px){.fca-option-grid{grid-template-columns:1fr}.fca-mission-guide{align-items:flex-start}.fca-activity-intro{align-items:flex-start}.fca-activity-intro img{width:88px;height:76px}}
+
+.resource-note{padding:14px 16px;border:1px dashed var(--goldLine);border-radius:12px;background:#faf5e9;font-size:14px;color:var(--muted)}
+.resource-doc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.resource-doc{padding:14px;border:1px solid var(--goldLine);border-radius:13px;background:#fffdf8}
+.resource-doc p{font-size:14px;line-height:1.45;color:var(--muted);margin:6px 0 10px}
+.audio-list{display:grid;gap:10px;margin-top:12px}
+.audio-row{display:grid;grid-template-columns:minmax(170px,1fr) minmax(240px,1.3fr);gap:14px;align-items:center;padding:10px 12px;border:1px solid var(--goldLine);border-radius:12px;background:#fffdf8}
+.audio-row audio{width:100%}
+.skills-chat-preview{display:grid;gap:8px;margin:12px 0}
+.skills-chat-line{padding:10px 14px;border:1px solid var(--goldLine);border-radius:13px;background:#fffdf8}
+.skills-chat-line b{display:block;color:var(--gold3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.skills-chat-line span{line-height:1.45}
+.skills-choice-stack{display:grid;grid-template-columns:1fr;gap:9px;margin:12px 0}
+.skills-choice-stack button{width:100%;text-align:left;white-space:normal;line-height:1.4;padding:12px 14px}
+@media(max-width:700px){.resource-doc-grid{grid-template-columns:1fr}.audio-row{grid-template-columns:1fr}}
