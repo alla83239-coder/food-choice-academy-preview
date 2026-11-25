@@ -1861,7 +1861,7 @@ Actions["start-fc-mission"]=function(btn){
  }
 };
 function fcPortfolioMarkup(){
- const nutrition=S.results["3b-athlete"]?S.results["3b-athlete"].score+"/"+S.results["3b-athlete"].max+" research checks":"Not completed";
+ const nutritionResearch=S.results["3b-athlete"]?S.results["3b-athlete"].score+"/"+S.results["3b-athlete"].max+" research checks":"Not completed";
  const menu=S.menuPlan?S.menuPlan.name+" · "+S.menuPlan.score+"/"+S.menuPlan.max+" checks":"Not completed";
  const nutrition=S.nutritionAnalysis?("Energy "+S.nutritionAnalysis.totals.kcal.toFixed(0)+" kcal · P "+S.nutritionAnalysis.totals.protein.toFixed(1)+" g · C "+S.nutritionAnalysis.totals.carbs.toFixed(1)+" g · F "+S.nutritionAnalysis.totals.fat.toFixed(1)+" g"):"Not completed";
  const carbon=S.procurement?S.procurement.items.length+" ingredients · "+S.procurement.footprint.toFixed(2)+" kg CO₂e":"Not completed";
@@ -1871,7 +1871,7 @@ function fcPortfolioMarkup(){
  const items=[
   ["Starting hypothesis",S.missionHypothesis||"Not submitted yet"],
   ["Packaging decision",S.decisions.pack?.title||S.decisions.pack?.id||"Not decided"],
-  ["Teen nutrition research",nutrition],
+  ["Teen nutrition research",nutritionResearch],
   ["One-day canteen menu",menu],
   ["Portion-level nutrition analysis",nutrition],
   ["Vending-machine decision",S.decisions.vend?.title||S.decisions.vend?.id||"Not decided"],
