@@ -131,3 +131,30 @@ body.no-bar #app{width:100%!important;max-width:none!important;margin:0!importan
  #app .fca-question-footer{align-items:stretch}
  #app .fca-question-footer .btn{min-width:124px}
 }
+
+
+/* Final interaction polish · single-attempt screens */
+.fca-task-complete{scroll-margin-top:18px}
+.fca-task-complete .done-panel{margin-top:8px}
+.fca-task-complete .footer-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fca-task-complete [data-action="next-step"]{min-width:150px}
+.fca-one-question .fca-question-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fca-one-question .fca-answer-option{min-height:54px}
+.fca-question-footer{margin-top:18px}
+.fca-answer-option:disabled,.tri-item:disabled{opacity:.92;cursor:default}
+.fca-trio-columns .tri-options{display:grid;gap:8px}
+.fca-trio-columns .tri-item{width:100%;min-height:58px;text-align:left;white-space:normal;line-height:1.45;overflow-wrap:anywhere;padding:12px;border-radius:11px}
+.fca-trio-columns .tri-item.selected{border-color:var(--gold3);background:var(--goldSoft);box-shadow:inset 0 0 0 1px var(--gold3)}
+.fca-trio-columns .tri-item:disabled{opacity:1}
+.fca-reading-nav .btn{min-width:132px}
+.skills-choice-stack{display:grid;grid-template-columns:1fr;gap:9px}
+.skills-choice-stack .btn{width:100%;min-height:50px;justify-content:flex-start;text-align:left;white-space:normal;line-height:1.45}
+.skills-result{padding:18px;border:1px solid var(--goldLine);border-radius:14px;background:#fffdf8}
+.fca-phone-dock{max-width:calc(100vw - 28px)}
+@media(max-width:720px){
+ .fca-trio-columns{grid-template-columns:1fr;gap:12px}
+ .fca-trio-columns .tri-column{display:grid;gap:6px}
+ .fca-trio-columns .tri-target-word{font-size:18px}
+ .fca-one-question .fca-question-options{grid-template-columns:1fr}
+ .fca-phone-dock{right:10px;bottom:10px}
+}
