@@ -382,22 +382,21 @@ function fadReadingStepper(zone){
 }
 function buildHealthyQuestionnaire(zone){
  const qs=[
-  {q:"_____ do you eat for breakfast?",g:"How much",opts:["nothing","just some cereal","a lot of fruit"]},
-  {q:"_____ cola do you drink a day?",g:"How much",opts:["a lot","a little","none"]},
-  {q:"_____ portions of fruit and vegetables do you eat in a day?",g:"How many",opts:["none","two or three","five or more"]},
-  {q:"_____ glasses of water do you drink in a day?",g:"How many",opts:["one","three","more than five"]},
-  {q:"_____ meals do you miss in a week?",g:"How many",opts:["a lot","a few","none"]},
-  {q:"_____ junk food do you eat in a week?",g:"How much",opts:["five or six portions","two portions","none"]}
+  {q:"_____ glasses of water do you drink in a day?",g:"How many",opts:["one","a lot","none"],image:"water"},
+  {q:"_____ cola do you drink a day?",g:"How much",opts:["a lot","a little","none"],image:"lemon"},
+  {q:"_____ sweets do you eat in a week?",g:"How many",opts:["a lot","a few","none"],image:"food"},
+  {q:"_____ portions of fruit and vegetables do you eat each day?",g:"How many",opts:["five or six portions","two or three","none"],image:"veg"},
+  {q:"_____ junk food do you eat in a week?",g:"How much",opts:["a lot","a little","none"],image:"salad"}
  ];
  let i=0,answers=[],grammarScore=0;
- zone.innerHTML=`<div class="card soft"><p><b>Workbook · Unit 3 · page 21</b></p><p>Complete the Healthy Eating Questionnaire. For each question, choose <b>How much</b> or <b>How many</b>, then select the answer that describes your own habits. This is a self-assessment: there are no right or wrong lifestyle answers.</p></div><div id="hqStage"></div>`;
+ zone.innerHTML='<div class="card soft"><p><b>Workbook · Healthy Eating Questionnaire</b></p><p>Choose <b>How much</b> or <b>How many</b>, then select the answer that describes your own habits. This is a self-assessment: there are no right or wrong lifestyle answers.</p></div><div id="hqStage"></div>';
  const stage=$("#hqStage",zone);
  function show(){
   if(i>=qs.length){finish();return;}
   const q=qs[i];
-  stage.innerHTML=`<div class="qcard"><div class="qnum">Question ${i+1} of ${qs.length}</div><div class="qtext">${q.q}</div><div class="chiprow" id="hqGrammar"><button class="chip" data-g="How much">How much</button><button class="chip" data-g="How many">How many</button></div><div class="small muted" style="margin:10px 0 6px">Choose the answer that best describes you:</div><div class="chiprow" id="hqAnswers">${q.opts.map((o,j)=>`<button class="chip" data-a="${j}">${o}</button>`).join("")}</div><div class="footer-bar"><span class="small muted">Your answers are personal, not graded.</span><button class="btn btn-gold btn-sm" id="hqNext" disabled>${i===qs.length-1?"See my result":"Continue"} ${icon("right")}</button></div></div>`;
+  stage.innerHTML='<div class="progress-line"><i style="width:'+(i/qs.length*100)+'%"></i></div><div class="qcard"><div class="small muted">QUESTION '+(i+1)+' / '+qs.length+'</div><div class="fad-passage-layout" style="margin:12px 0"><div>'+readingIllustrationV11(q.image,"Food and drink illustration","Think about your everyday choices.")+'</div><div><div class="qtext">'+q.q+'</div><div class="chiprow" id="hqGrammar"><button class="chip" data-g="How much">How much</button><button class="chip" data-g="How many">How many</button></div><div class="small muted" style="margin:10px 0 6px">Choose the answer that best describes you:</div><div class="chiprow" id="hqAnswers">'+q.opts.map((o,j)=>'<button class="chip" data-a="'+j+'">'+esc(o)+'</button>').join("")+'</div><p class="small muted" style="margin-top:10px">Your lifestyle answer is not graded.</p></div></div><div class="footer-bar"><span class="small muted">'+i+' / '+qs.length+' answered</span><button class="btn btn-gold btn-sm" id="hqNext" disabled>Continue '+icon("right")+'</button></div></div>';
   let grammar=null,answer=null;
-  $$("#hqGrammar .chip",stage).forEach(btn=>btn.addEventListener("click",()=>{grammar=btn.dataset.g;$$('#hqGrammar .chip',stage).forEach(x=>x.classList.toggle("sel",x===btn));}));
+  $$("#hqGrammar .chip",stage).forEach(btn=>btn.addEventListener("click",()=>{grammar=btn.dataset.g;$$('#hqGrammar .chip',stage).forEach(x=>x.classList.toggle("sel",x===btn));$("#hqNext",stage).disabled=answer===null;}));
   $$("#hqAnswers .chip",stage).forEach(btn=>btn.addEventListener("click",()=>{answer=Number(btn.dataset.a);$$('#hqAnswers .chip',stage).forEach(x=>x.classList.toggle("sel",x===btn));$("#hqNext",stage).disabled=grammar===null;}));
   $("#hqNext",stage).addEventListener("click",()=>{if(answer===null||grammar===null)return;answers.push({question:q.q,grammar,grammarCorrect:grammar===q.g,choice:q.opts[answer],letter:["A","B","C"][answer]});if(grammar===q.g)grammarScore++;i++;show();});
  }
@@ -405,15 +404,8 @@ function buildHealthyQuestionnaire(zone){
   const counts={A:0,B:0,C:0};answers.forEach(a=>counts[a.letter]++);
   const majority=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
   const result=majority==="A"?"Mostly As: You don’t eat very well. Try to eat more healthy food and drink more water — you’ll feel better.":majority==="B"?"Mostly Bs: Your diet is OK. Try to drink fewer fizzy drinks and be sure to eat all your meals.":"Mostly Cs: You eat very well. You’re a healthy person — keep it up!";
-  stage.innerHTML=`<div class="card"><h3>Your questionnaire result</h3><p>${result}</p><p class="small muted">This is the Workbook’s self-assessment feedback. It is not a medical assessment.</p><div class="divider"></div><h3>Workbook Task 5 · My breakfast</h3><p>Describe what you have for breakfast. Is your breakfast healthy or unhealthy? Explain why.</p><textarea id="hqBreakfast" class="input" rows="4" placeholder="I usually have … for breakfast. I think it is … because …"></textarea><div class="footer-bar"><span class="small muted">Write a few sentences in English.</span><button class="btn btn-gold" id="hqSave">Save to My Project ${icon("check")}</button></div></div>`;
-  $("#hqSave",stage).addEventListener("click",()=>{
-   const writing=$("#hqBreakfast",stage).value.trim();if(writing.length<15){toast("Write a little more about your breakfast before saving.");return;}
-   S.writingPortfolio=S.writingPortfolio||[];
-   S.writingPortfolio.push({id:"3b-healthy-breakfast",title:"Healthy Eating Questionnaire & My Breakfast",text:writing,result,answers,createdAt:Date.now()});
-   save();
-   completeTask("3b-health-questionnaire",{score:grammarScore,max:6,errors:6-grammarScore,xp:20+grammarScore*2,log:answers.map(a=>({q:a.question,user:a.grammar,ok:a.grammarCorrect,focus:"Compare countable and uncountable nouns."}))},zone);
-   $("#hqSave",stage).disabled=true;$("#hqSave",stage).textContent="Saved to My Project";
-  });
+  stage.innerHTML='<div class="card"><span class="tag">Your questionnaire result</span><h3 style="margin-top:12px">'+(majority==="A"?"Mostly As":majority==="B"?"Mostly Bs":"Mostly Cs")+'</h3><p>'+result+'</p><p class="small muted">Workbook self-assessment feedback; not a medical assessment.</p><div class="divider"></div><div class="fad-passage-layout">'+readingIllustrationV11("breakfast","A healthy breakfast","Breakfast ideas.")+'<div><h3>Workbook · Describe your breakfast</h3><p>Describe what you have for breakfast. Is your breakfast healthy or unhealthy? Explain why.</p><textarea id="hqBreakfast" rows="4" style="width:100%" placeholder="I usually have … for breakfast. I think it is … because …"></textarea></div></div><div class="footer-bar"><span class="small muted">Write a few sentences in English.</span><button class="btn btn-gold" id="hqSave">Save to My Project '+icon("check")+'</button></div></div>';
+  $("#hqSave",stage).addEventListener("click",()=>{const writing=$("#hqBreakfast",stage).value.trim();if(writing.length<15){toast("Write a little more about your breakfast before saving.");return;}S.writingPortfolio=S.writingPortfolio||[];S.writingPortfolio.push({id:"3b-healthy-breakfast",title:"Healthy Eating Questionnaire & My Breakfast",text:writing,result,answers,createdAt:Date.now()});save();completeTask("3b-health-questionnaire",{score:grammarScore,max:qs.length,errors:qs.length-grammarScore,xp:20+grammarScore*2,log:answers.map(a=>({q:a.question,user:a.grammar,ok:a.grammarCorrect,focus:"Compare countable and uncountable nouns."}))},zone);$("#hqSave",stage).disabled=true;$("#hqSave",stage).textContent="Saved to My Project";});
  }
  show();
 }
