@@ -535,5 +535,116 @@ checkSkillPartV13=function(el,part,event,value){
  save();renderSkillsTestPanelV13(el);
 };
 
+
+/* === Repair 3A pair task and reading pages === */
+if(typeof fcaCrosswordStep!=="undefined"){
+ fcaCrosswordStep.build=function(b){
+  b.innerHTML=stepShell("Communicative Practice","users","Your Plate, Our Planet · Pair Vocabulary","Adapted from Insight 2e Pre-Intermediate Communication Worksheet 3A.")+
+   '<div class="card"><div class="task-zone fca-comm-step-zone">'+communicativeActivityMarkup()+'</div></div>';
+  const zone=b.querySelector(".task-zone"),button=$("#fcaSubmitComm",b);
+  if(!zone||!button)return;
+  zone.insertAdjacentHTML("afterbegin",'<div class="progress-line fca-question-progress"><i style="width:0%"></i></div><div class="fca-question-meta"><span>PAIR TASK · 1 / 1</span><span>One submission</span></div>');
+  button.textContent="Save response & continue";
+  button.addEventListener("click",function(){
+   if(S.results["3a-crossword"])return;
+   const field=$("#fcaCommResponse",zone),value=field?field.value.trim():"";
+   const words=value.split(/\s+/).filter(Boolean).length,passed=words>=20;
+   const log=[{q:"Pair vocabulary challenge · explain without saying the word",user:value||"No written explanation recorded",correct:"Explain at least three expressions and identify each as a noun or a verb.",ok:passed,focus:"Use your own wording, let your partner guess and identify the part of speech."}];
+   completeTask("3a-crossword",{score:passed?1:0,max:1,errors:passed?0:1,xp:passed?10:0,log:log},zone);
+   const entry={id:"3a-crossword-pair-notes",route:"Mission 3A · Your Plate, Our Planet",prompt:"Pair vocabulary challenge · explain without saying the word",text:value,analysis:analyseWriting(value,"Food vocabulary explanations"),updatedAt:new Date().toISOString()};
+   const old=S.writingPortfolio.find(function(x){return x.id===entry.id;});
+   if(old)Object.assign(old,entry);else S.writingPortfolio.push(entry);
+   save();
+  });
+ };
+}
+
+/* The article is rebuilt from its original source copy before pagination.
+   Page 1 contains paragraphs 1–2; page 2 contains paragraphs 3–5. */
+const fcaReadingStepFixed=LESSONS[0].steps.find(function(x){return x.task==="3a-read";});
+if(fcaReadingStepFixed){
+ fcaReadingStepFixed.build=function(b){
+  const article=[
+   "Imagine keeping all your plastic rubbish for a year, and then making it into a piece of art. This is what artist Daniel Webb did in <i>Everyday Plastic</i> — a mural made from 4,490 items he collected for 12 months. Most came from food packaging. The most alarming thing? <b>93% was single-use</b> and only eight items were biodegradable!",
+   "In the UK, over 50% of household food comes in a package. Most is low-quality, single-use plastic, so recycling centres can't use it. We have only <span class=\"hl\">recycled</span> about 9% of all plastic ever produced, yet we <span class=\"hl\">throw away</span> millions of tonnes every year.",
+   "Food waste is another challenge: 66 tonnes every second — 2.1 billion tonnes a year. Supermarkets throw away 20–40% of displayed food because they offer around 40,000 items of choice.",
+   "Meat and cheese have a bigger carbon footprint than fruit and vegetables. Cows create the same greenhouse gases as 20 million cars. We need 15,000 litres of water for 1 kg of beef — compare 800 litres for apples. <b>Food miles</b> and <span class=\"hl\">transport</span> create pollution and global warming.",
+   "We need <span class=\"hl\">eco-friendly</span> and <span class=\"hl\">energy-efficient</span> solutions. Changing one thing still has an impact: Daniel gave up plastic bottles — 300 pieces less in his mural."
+  ];
+  b.innerHTML=stepShell("Reading","eye","The Real Cost of Food","Read both pages. Use the article as evidence when you answer the questions.")+
+   '<div class="card reading fca-reading-pages">'+
+   '<section class="fca-reading-page is-current" id="fcaReadingPage1">'+readingIllustrationV11("l3a","Produce in a supermarket","Food production and packaging connect local choices with global impacts.",true)+'<p class="dropcap">'+article[0]+'</p><p>'+article[1]+'</p></section>'+
+   '<section class="fca-reading-page" id="fcaReadingPage2" hidden><p>'+article[2]+'</p><p>'+article[3]+'</p><p>'+article[4]+'</p></section>'+
+   '<div class="fca-reading-nav"><span class="fca-reading-count">PAGE <b id="fcaReadPage">1</b> / 2</span><button type="button" class="btn btn-gold btn-sm" id="fcaReadNext">Next page '+icon("right")+'</button></div></div>'+
+   '<div class="card"><div class="task-zone"></div></div>';
+  const reading=$("#fcaReadingPage1",b).parentElement;
+  $("#fcaReadNext",reading).addEventListener("click",function(){
+   const p1=$("#fcaReadingPage1",reading),p2=$("#fcaReadingPage2",reading),toSecond=p2.hidden;
+   p1.hidden=toSecond;p2.hidden=!toSecond;
+   $("#fcaReadPage",reading).textContent=toSecond?"2":"1";
+   $("#fcaReadNext",reading).innerHTML=toSecond?'Back to page 1':'Next page '+icon("right");
+   reading.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+  engMCQ($(".task-zone",b),{id:"3a-read",items:READ3A});
+ };
+}
+
+/* === Correct Additional Materials: Word · Definition · Translation === */
+function fcaBuildTrioAssessment(el){
+ const box=$("#triGame",el);if(!box)return;
+ const saved=S.additionalMaterials&&S.additionalMaterials.trio;
+ if(saved&&saved.done){
+  box.innerHTML='<div class="card soft"><b>Activity complete</b><p>Score: '+saved.score+'/6 · Errors: '+saved.errors+'. Your one attempt is saved.</p></div>';
+  return;
+ }
+ const pool=shuffle(VOCAB.filter(function(x){return x&&x.t&&x.en&&x.ru;})).slice(0,6);
+ let index=0,score=0,errors=0,log=[];
+ function show(){
+  if(index>=pool.length){
+   S.additionalMaterials=S.additionalMaterials||{};
+   S.additionalMaterials.trio={done:true,score:score,errors:errors,total:pool.length,createdAt:Date.now()};
+   save();
+   completeTask("additional-trio",{score:score,max:pool.length,errors:errors,xp:score*5,log:log},null);
+   box.innerHTML='<div class="card soft"><span class="tag">Activity complete</span><h3>Word · Definition · Translation</h3><p>Score: <b>'+score+'/6</b> · Mistakes: '+errors+'. Your result is saved in the activity record.</p><p class="small muted">You can continue with another Additional Materials activity.</p></div>';
+   return;
+  }
+  const target=pool[index];
+  const defs=shuffle([target].concat(shuffle(VOCAB.filter(function(x){return x.t!==target.t&&x.en!==target.en;})).slice(0,3)));
+  const translations=shuffle([target].concat(shuffle(VOCAB.filter(function(x){return x.t!==target.t&&x.ru!==target.ru;})).slice(0,3)));
+  const selected={def:null,ru:null};
+  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+(index/pool.length*100)+'%"></i></div>'+
+   '<div class="fca-question-meta"><span>TRIO '+(index+1)+' / '+pool.length+'</span><span>One attempt</span></div>'+
+   '<div class="tri-columns fca-trio-columns"><div class="tri-column"><h3>Word</h3><div class="tri-target-word">'+esc(target.t)+'</div><small class="muted">Match this word.</small></div>'+
+   '<div class="tri-column"><h3>English definition</h3>'+defs.map(function(x,i){return '<button type="button" class="tri-item" data-col="def" data-i="'+i+'">'+esc(x.en)+'</button>';}).join("")+'</div>'+
+   '<div class="tri-column"><h3>Russian translation</h3>'+translations.map(function(x,i){return '<button type="button" class="tri-item" data-col="ru" data-i="'+i+'">'+esc(x.ru)+'</button>';}).join("")+'</div></div>'+
+   '<div class="fad-feedback fca-answer-feedback" id="fcaTrioFeedback" aria-live="polite">Select one English definition and one Russian translation.</div>'+
+   '<div class="footer-bar"><span class="small muted">One response in each column.</span><button type="button" class="btn btn-gold" id="fcaTrioSubmit" disabled>Check & continue '+icon("right")+'</button></div>';
+  box.querySelectorAll(".tri-item").forEach(function(button){
+   button.addEventListener("click",function(){
+    if(button.disabled)return;
+    const col=button.dataset.col;selected[col]=Number(button.dataset.i);
+    box.querySelectorAll('.tri-item[data-col="'+col+'"]').forEach(function(x){x.classList.toggle("selected",x===button);});
+    $("#fcaTrioSubmit",box).disabled=selected.def===null||selected.ru===null;
+   });
+  });
+  $("#fcaTrioSubmit",box).addEventListener("click",function(event){
+   if(selected.def===null||selected.ru===null)return;
+   const ok=defs[selected.def].t===target.t&&translations[selected.ru].t===target.t;
+   if(ok){score++;noteAnswer(true,event,5);}else{errors++;noteAnswer(false,event);}
+   log.push({q:target.t,user:defs[selected.def].en+" · "+translations[selected.ru].ru,correct:target.en+" · "+target.ru,ok:ok,focus:"Match both the English meaning and Russian translation to the target word."});
+   box.querySelectorAll(".tri-item").forEach(function(x){x.disabled=true;});
+   $("#fcaTrioFeedback",box).textContent=ok?"Response recorded. Continue to the next word.":"Response recorded. Your score is lower, but you can continue.";
+   const button=$("#fcaTrioSubmit",box);button.textContent="Next word "+icon("right");
+   button.onclick=function(){index++;show();};
+  });
+ }
+ show();
+}
+const fcaActivitiesBeforeTrio=renderActivities;
+renderActivities=function(el){
+ fcaActivitiesBeforeTrio(el);
+ fcaBuildTrioAssessment(el);
+};
+
 App.go({name:"start"});updateTopbar();
 })();
