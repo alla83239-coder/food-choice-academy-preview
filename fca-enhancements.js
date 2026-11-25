@@ -114,29 +114,14 @@ if(fcaReadingStep){
 }
 
 /* Add the communicative crossword after the vocabulary work in Mission 3A. */
-const fcaCrosswordWords=[
- {clue:"A nutrient found in eggs, beans, fish and meat.",answer:"FIBRE",key:2},
- {clue:"A nutrient found in butter and oil.",answer:"FAT",key:1},
- {clue:"Units used to measure the energy in food.",answer:"CALORIES",key:2},
- {clue:"A meal or food that includes a useful variety of nutrients.",answer:"SALAD",key:1},
- {clue:"A useful substance the body gets from food.",answer:"NUTRIENT",key:0},
- {clue:"Bread, pasta and rice contain these energy-giving substances.",answer:"CARBOHYDRATES",key:0},
- {clue:"Recently picked or prepared; not old.",answer:"FRESH",key:2},
- {clue:"A way of eating; the food a person usually eats.",answer:"DIET",key:0}
+const fcaCommunicativeWords=[
+ {side:"A",term:"grow"},{side:"A",term:"transport"},{side:"A",term:"rubbish dump"},{side:"A",term:"food miles"},{side:"A",term:"refrigerate"},{side:"A",term:"throw away"},
+ {side:"B",term:"produce"},{side:"B",term:"recycle"},{side:"B",term:"global warming"},{side:"B",term:"package"},{side:"B",term:"recycling centre"},{side:"B",term:"greenhouse gases"}
 ];
-function crosswordMarkup(){
- const centre=10,cols=23;
- const rows=fcaCrosswordWords.map((w,r)=>{
-  const start=centre-w.key;
-  const cells=w.answer.split("").map((ch,j)=>{
-   const key=j===w.key;
-   return '<input class="fca-cw-cell'+(key?' fca-cw-key':'')+'" maxlength="1" inputmode="text" autocomplete="off" aria-label="Clue '+(r+1)+', letter '+(j+1)+'" data-cw-row="'+r+'" data-cw-pos="'+j+'" style="grid-column:'+(start+j+1)+';grid-row:'+(r+1)+'">';
-  }).join("");
-  return '<div class="fca-cw-clue"><b>'+(r+1)+'.</b> '+w.clue+'</div>'+cells;
- }).join("");
- return '<div class="fca-crossword"><div class="fca-cw-intro"><span class="tag">Communicative crossword</span><h3>Complete the vocabulary crossword</h3><p>Read each definition and enter one letter in each square. The highlighted column reveals the key word.</p></div><div class="fca-cw-layout"><div class="fca-cw-clues">'+fcaCrosswordWords.map((w,i)=>'<div><b>'+(i+1)+'.</b> '+w.clue+'</div>').join("")+'</div><div class="fca-cw-board" style="grid-template-columns:repeat('+cols+',24px);grid-template-rows:repeat('+fcaCrosswordWords.length+',34px)">'+rows+'</div></div><div class="fca-cw-actions"><button class="btn btn-gold btn-sm" id="fcaCheckCrossword">Check crossword</button><span class="fca-cw-feedback" id="fcaCwFeedback" aria-live="polite">The highlighted letters form a key word.</span></div><div class="fca-cw-sentence" id="fcaCwSentence" hidden><b>Key word: <span>BALANCED</span></b><label>Write one sentence using BALANCED and at least one expression from this mission. Use a modal verb (should, can or must) or explain your reason with because.<textarea id="fcaCwSentenceInput" rows="3" placeholder="A balanced food choice should…"></textarea></label><button class="btn btn-gold btn-sm" id="fcaCheckSentence">Check my sentence</button><p id="fcaSentenceFeedback" class="fca-cw-feedback" aria-live="polite"></p></div></div>';
-}
-const fcaVocabStep=LESSONS[0].steps.find(x=>x.task==="3a-vocab");
+function communicativeActivityMarkup(){
+ const cards=fcaCommunicativeWords.map(w=>'<label class="fca-comm-word"><span class="tag">Student '+w.side+'</span><b>'+esc(w.term)+'</b><small>Explain this expression without saying it. Let your partner guess.</small></label>').join("");
+ return '<div class="fca-crossword"><div class="fca-cw-intro"><span class="tag">Insight 2e · Communication Worksheet 3A</span><h3>Your plate, our planet · Pair vocabulary challenge</h3><p>Work with a partner. Student A explains the six words in Set A; Student B explains the six words in Set B. Do not say the target word. Your partner guesses it. Then discuss whether each word is a noun or a verb.</p></div><div class="fca-comm-grid">'+cards+'</div><label class="fca-comm-response"><b>Record your explanations</b><span>Choose at least three expressions. Explain each one in your own words without repeating the expression itself. Add whether it is a noun or a verb.</span><textarea id="fcaCommResponse" rows="6" placeholder="1. This is the distance food travels from where it is grown to where it is sold. (noun)&#10;2. ..."></textarea></label><div class="fca-cw-actions"><button class="btn btn-gold btn-sm" id="fcaSubmitComm">Save pair-work notes</button><span class="fca-cw-feedback" id="fcaCommFeedback" aria-live="polite">Your notes become part of My Project.</span></div></div>';
+}const fcaVocabStep=LESSONS[0].steps.find(x=>x.task==="3a-vocab");
 if(fcaVocabStep){
  const buildVocab=fcaVocabStep.build;
  fcaVocabStep.build=function(b){
@@ -215,61 +200,28 @@ renderFoodChoiceMission=function(el,index){
 
 /* New step between 3A word study and the life-cycle task. */
 const fcaCrosswordStep={
- tag:"Communicative Practice",ic:"grid",title:"The BALANCED Crossword",task:"3a-crossword",
+ tag:"Communicative Practice",ic:"users",title:"Your Plate, Our Planet · Pair Vocabulary",task:"3a-crossword",
  build(b){
-  b.innerHTML=stepShell("Communicative Practice","grid","The BALANCED Crossword","Complete the vocabulary crossword from the mission. Use the highlighted letters to find the key word.")+taskCard();
+  b.innerHTML=stepShell("Communicative Practice","users","Your Plate, Our Planet · Pair Vocabulary","Adapted from Insight 2e Pre-Intermediate Communication Worksheet 3A.")+taskCard();
   const zone=b.querySelector(".task-zone");if(!zone)return;
-  zone.innerHTML=crosswordMarkup();
-  const board=$(".fca-cw-board",zone);
-  board.addEventListener("input",e=>{
-   const t=e.target;if(!t.matches("[data-cw-row]"))return;
-   t.value=t.value.toUpperCase().replace(/[^A-Z]/g,"").slice(-1);
-   if(t.value){const next=board.querySelector('[data-cw-row="'+t.dataset.cwRow+'"][data-cw-pos="'+(Number(t.dataset.cwPos)+1)+'"]');next?.focus();}
-  });
-  board.addEventListener("paste",e=>{
-   const t=e.target;if(!t.matches('[data-cw-row="0"][data-cw-pos="0"]'))return;
-   const raw=(e.clipboardData||window.clipboardData).getData("text").toUpperCase().replace(/[^A-Z]/g,"");
-   if(raw.length>1){e.preventDefault();Array.from(raw).forEach((ch,i)=>{const cell=board.querySelector('[data-cw-row="0"][data-cw-pos="'+i+'"]');if(cell)cell.value=ch;});}
-  });
-  $("#fcaCheckCrossword",zone).addEventListener("click",()=>{
-   let score=0,errors=0,log=[];
-   fcaCrosswordWords.forEach((w,r)=>{
-    const cells=Array.from(board.querySelectorAll('[data-cw-row="'+r+'"]'));
-    const answer=cells.map(x=>x.value).join("");
-    const ok=answer===w.answer;
-    if(ok)score++;else errors++;
-    cells.forEach(x=>x.classList.toggle("is-correct",ok));
-    log.push({q:w.clue,user:answer||"blank",ok,focus:"Use the definition and the reading vocabulary. Check the highlighted letter position."});
-   });
-   const hint=$("#fcaCwFeedback",zone);
-   if(score===fcaCrosswordWords.length){
-    hint.textContent="All entries are correct. The highlighted letters spell BALANCED.";
-    $("#fcaCwSentence",zone).hidden=false;
-   }else hint.textContent=score+"/"+fcaCrosswordWords.length+" entries fit. Recheck the definitions and try again; the key word stays hidden until the grid is complete.";
-   zone.dataset.fcaScore=String(score);zone.dataset.fcaErrors=String(errors);zone.dataset.fcaLog=JSON.stringify(log);
-  });
-  $("#fcaCheckSentence",zone).addEventListener("click",()=>{
-   const sentence=$("#fcaCwSentenceInput",zone).value.trim();
-   const hint=$("#fcaSentenceFeedback",zone);
-   if(!sentence){hint.textContent="Write your sentence first.";return;}
-   const hasKey=/\bbalanced\b/i.test(sentence);
-   const hasVocab=/\b(food miles|food waste|single.use|biodegradable|eco.friendly|carbon footprint|greenhouse gases|recycling centre|packaging)\b/i.test(sentence);
-   const hasGrammar=/\b(should|can|must|because|which|that|if|although)\b/i.test(sentence);
-   if(!hasKey||!hasVocab||!hasGrammar){hint.textContent="Check the three requirements: use BALANCED, include a mission expression, and use a modal verb or a linking structure such as because / which.";return;}
-   const score=Number(zone.dataset.fcaScore||0),errors=Number(zone.dataset.fcaErrors||0),log=JSON.parse(zone.dataset.fcaLog||"[]");
-   log.push({q:"Write a sentence with BALANCED",user:sentence,ok:true,focus:"Your sentence uses the key word, mission vocabulary and a target grammar or linking structure."});
-   completeTask("3a-crossword",{score:score+1,max:fcaCrosswordWords.length+1,errors,xp:(score+1)*10,log},zone);
-   const saved=S.writingPortfolio.find(x=>x.id==="3a-crossword-sentence");
-   const analysis=analyseWriting(sentence,"Sentence with the key word BALANCED");
-   const entry={id:"3a-crossword-sentence",route:"Mission 3A · The Real Cost of Food",prompt:"Sentence with the key word BALANCED",text:sentence,analysis,updatedAt:new Date().toISOString()};
-   if(saved)Object.assign(saved,entry);else S.writingPortfolio.push(entry);save();
+  zone.innerHTML=communicativeActivityMarkup();
+  $("#fcaSubmitComm",zone).addEventListener("click",()=>{
+   const field=$("#fcaCommResponse",zone),value=field.value.trim(),feedback=$("#fcaCommFeedback",zone);
+   const words=value.toLowerCase();
+   const used=fcaCommunicativeWords.filter(w=>words.includes(w.term.toLowerCase()));
+   if(value.split(/\s+/).filter(Boolean).length<20){feedback.textContent="Add more detail: explain at least three expressions in your own words and identify each as a noun or a verb.";return;}
+   if(used.length<2){feedback.textContent="Make sure your notes refer to at least two expressions from Set A or Set B. Explain their meanings rather than copying the target words.";return;}
+   const log=[{q:"Pair vocabulary challenge · explain without saying the word",user:value,ok:true,focus:"Use your own explanation, let your partner guess, and identify whether each target expression is a noun or a verb."}];
+   completeTask("3a-crossword",{score:1,max:1,errors:0,xp:10,log},zone);
+   const entry={id:"3a-crossword-pair-notes",route:"Mission 3A · Your Plate, Our Planet",prompt:"Pair vocabulary challenge · explain without saying the word",text:value,analysis:analyseWriting(value,"Food vocabulary explanations"),updatedAt:new Date().toISOString()};
+   const old=S.writingPortfolio.find(x=>x.id===entry.id);if(old)Object.assign(old,entry);else S.writingPortfolio.push(entry);
+   save();feedback.textContent="Your pair-work notes have been saved in My Project. Use them to practise the explanations with a partner."; 
   });
  }
 };
 if(!LESSONS[0].steps.some(x=>x.task==="3a-crossword")){
  LESSONS[0].steps.splice(2,0,fcaCrosswordStep);
-}
-FOOD_CHOICE_MISSIONS[1].requires=["3a-read","3a-vocab","3a-crossword"];
+}FOOD_CHOICE_MISSIONS[1].requires=["3a-read","3a-vocab","3a-crossword"];
 FOOD_CHOICE_MISSIONS[2].target={l:0,s:3};
 
 /* Rule-based formative English writing coach: all free-text task fields feed the portfolio. */
