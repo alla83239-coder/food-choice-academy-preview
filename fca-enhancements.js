@@ -354,5 +354,44 @@ function renderMyPortfolio(el){
  const responses=logs.length?'<div class="fca-response-list">'+logs.map(x=>'<article><div><b>'+esc(x.id)+'</b><span class="'+(x.ok===true?'fca-ok':x.ok===false?'fca-revisit':'')+'">'+(x.ok===true?'Recorded as correct':x.ok===false?'Needs review':'Recorded')+'</span></div><p><b>'+esc(x.q)+'</b></p><p>Your response: '+esc(x.user)+'</p>'+(x.focus?'<small>Coach recommendation: '+esc(x.focus)+'</small>':'')+'</article>').join("")+'</div>':'<p class="muted small">Checked task responses will appear here as they are completed.</p>';
  el.innerHTML='<section class="fca-portfolio-page"><div class="photo-hero" style="min-height:190px"><div class="veil"></div><div class="ph-content"><div class="kicker">Your learning record</div><h1>My Portfolio</h1><p>Every written response, task answer, language check and recommendation is collected here.</p></div></div><div class="fca-portfolio-stats"><div><b>'+entries.length+'</b><span>Written responses</span></div><div><b>'+logs.length+'</b><span>Recorded task answers</span></div><div><b>'+fcProgress()+'/12</b><span>Missions recorded</span></div></div><div class="fca-portfolio-section"><h2>Written work & language feedback</h2><p class="muted">Latest version of each written response, with error analysis and individual recommendations.</p>'+writing+'</div><div class="fca-portfolio-section"><h2>Task answers & coach notes</h2>'+responses+'</div><div class="footer-bar"><button class="btn btn-ghost" data-action="nav" data-page="missions">← Back to missions</button><button class="btn btn-gold" data-action="resume-fc">Continue</button></div></section>';
 }
+
+/* One-time learner sign-in and SCORM 1.2 identity persistence. */
+function fcaLmsName(){if(!LMS.ok)return "";try{return String(LMS.api.LMSGetValue("cmi.core.student_name")||"").trim();}catch(e){return "";}}
+if(!S.name){const n=fcaLmsName();if(n){S.name=n;S.started=true;}}
+function fcaSaveLearner(){
+ S.name=String(S.name||"").trim().slice(0,40);S.started=!!S.name;
+ save();
+ if(LMS.ok){try{
+  /* cmi.core.student_name is read-only in SCORM 1.2; the typed display name is stored in suspend_data. */
+  LMS.set("cmi.suspend_data",JSON.stringify(S));
+  LMS.set("cmi.core.lesson_location",JSON.stringify(S.route||{name:"missions"}));
+  LMS.commit();
+ }catch(e){}}
+ else{try{localStorage.setItem(FKEY,JSON.stringify(S));}catch(e){}}
+}
+renderStart=function(el){
+ if(S.name){
+  el.innerHTML='<section class="fca-login-screen"><div class="fca-login-visual"><div class="fca-login-overlay"></div><div class="fca-login-copy"><span class="tag">FOOD CHOICE ACADEMY</span><h1>Welcome back,<br><em>'+esc(S.name)+'</em></h1><p>Your learner profile and progress have been restored. Continue your project from where you left off.</p><div class="fca-login-meta"><span>✓ Profile restored</span><span>✓ Progress saved</span><span>✓ Project available</span></div></div></div><div class="fca-login-panel"><div class="kicker">Your learning space</div><h2>Ready to continue?</h2><p>Your name is saved for this course. You will not need to enter it again after each mission.</p><button class="btn btn-gold fca-login-submit" data-action="login-continue">Continue learning '+icon("right")+'</button><small>When opened in an LMS, your progress is synchronised with your SCORM 1.2 course record.</small></div></section>';
+  return;
+ }
+ el.innerHTML='<section class="fca-login-screen"><div class="fca-login-visual"><div class="fca-login-overlay"></div><div class="fca-login-copy"><span class="tag">INSIGHT 2E · PRE-INTERMEDIATE</span><h1>Food Choice<br><em>Academy</em></h1><p>Investigate food choices, solve real-world challenges and build your own project, one mission at a time.</p><div class="fca-login-meta"><span>Learning missions</span><span>Personal assistant team</span><span>My Project portfolio</span></div></div></div><div class="fca-login-panel"><div class="kicker">Learner sign in</div><h2>Let's get started</h2><p>Enter your name once to create your learner profile. It will be remembered throughout the course.</p><form id="fcaLoginForm"><label for="fcaLearnerName">Your name</label><input id="fcaLearnerName" name="learnerName" type="text" maxlength="40" autocomplete="name" placeholder="Enter your name" required><button class="btn btn-gold fca-login-submit" type="submit">Enter the Academy '+icon("right")+'</button></form><small>When launched in an LMS, your course identity and learning progress are connected to your SCORM 1.2 session.</small></div></section>';
+ const form=$("#fcaLoginForm",el),input=$("#fcaLearnerName",el);
+ form.addEventListener("submit",e=>{
+  e.preventDefault();const n=input.value.trim();if(!n){input.focus();return;}
+  S.name=n;S.started=true;S.route={name:"missions"};fcaSaveLearner();earnAch("first");App.go({name:"missions"});
+ });
+ setTimeout(()=>input.focus(),50);
+};
+Actions.start=function(){if(!S.name){App.go({name:"start"});return;}resumeFoodChoice();};
+Actions["login-continue"]=function(){if(!S.name){App.go({name:"start"});return;}resumeFoodChoice();};
+const fcaDashboardBeforeLogin=renderBrief;
+renderBrief=function(el){
+ fcaDashboardBeforeLogin(el);
+ const box=el.querySelector(".name-input");
+ if(box)box.innerHTML='<div class="fca-learner-chip">'+avatar("ben",38)+'<span><small>Signed in as</small><b>'+esc(S.name||"Learner")+'</b></span></div><button class="btn btn-gold" data-action="resume-fc">Continue '+icon("right")+'</button>';
+};
+const fcaSaveWithIdentity=save;
+save=function(){fcaSaveWithIdentity();if(LMS.ok){try{LMS.set("cmi.core.lesson_location",JSON.stringify(S.route||{}));}catch(e){}}};
+
 App.go({name:"start"});updateTopbar();
 })();
