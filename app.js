@@ -107,6 +107,7 @@ cheese:U("photo-1486297678162-eb2a19b0a32d",500),
 lemon:U("photo-1590502593747-42a996133562",500),
 noodles:U("photo-1585032226651-759b368d7246",500),
 market:U("photo-1466637574441-749b8f19452f",500),
+japan:U("photo-1493976040374-85c8e12f0c0e",500),
 forest:U("photo-1441974231531-c6227db76b6e",500),
 food:U("photo-1490645935967-10de6ba17061",500),
 oil:U("photo-1474979266404-7eaacbcd87c5",500)
@@ -431,7 +432,7 @@ const ATHLETE3B=[
 ];
 function buildHealthyQuestionnaire(zone){
  const qs=[
-  {q:"_____ do you eat for breakfast?",g:"How much",opts:["nothing","just some cereal","a lot of fruit"],image:"breakfast"},
+  {q:"_____ do you eat for breakfast?",g:"How much",opts:["nothing","just some cereal","a lot of fruit"],image:"bread"},
   {q:"_____ cola do you drink a day?",g:"How much",opts:["a lot","a little","none"],image:"cola"},
   {q:"_____ portions of fruit and vegetables do you eat in a day?",g:"How many",opts:["none","two or three","five or more"],image:"veg"},
   {q:"_____ glasses of water do you drink in a day?",g:"How many",opts:["one","three","more than five"],image:"water"},
@@ -1142,7 +1143,8 @@ prompt=cfg.items[idx];choices=[{value:"T",label:"True"},{value:"F",label:"False"
 prompt=cfg.items[idx][0];choices=cfg.items[idx].slice(1).map(function(x){return {value:x,label:x};});
 }
 var hint=skillHintV13("A",part,idx);
-return '<div class="progress-line"><i style="width:'+(idx/total*100)+'%"></i></div><div class="skills-part-head"><div><span class="tag">'+SKILLS_PART_LABELS_V13[part]+'</span><h2>'+cfg.title+'</h2></div><span class="small muted">Question '+(idx+1)+' / '+total+'</span></div>'+((part==="reading")?'<div class="skills-reading-brief">'+imgHTML("japan","Okinawa, Japan","A subtropical island group in southern Japan.","globe",false)+'<h3>Reading · The healthy people of Okinawa</h3><p>Read the passage carefully. Use details from the text as evidence; the questions will appear one at a time.</p></div>':"")+body+'<div class="qcard"><div class="qtext">'+esc(prompt)+'</div><div class="skills-choice-stack">'+choices.map(function(x){return '<button class="btn btn-ghost" data-st-choice="'+esc(x.value)+'">'+esc(x.label)+'</button>';}).join("")+'</div><div class="fad-feedback" data-st-feedback aria-live="polite">Choose one response. You can retry after a hint.</div><p class="small muted">Progress is saved as you work through this section.</p></div>';
+var mediaIntro=part==="listening"?'<div class="fca-audio-panel"><div><span class="tag">Original audio · Skills Test Track 04</span><b>Grow Your Own</b><p class="small muted">Play the recording manually, then answer the question below.</p></div><audio controls preload="none" src="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/audio/Insight_Preint_Skills_Unit3_Track04.mp3"></audio></div>':"";
+return '<div class="progress-line"><i style="width:'+(idx/total*100)+'%"></i></div><div class="skills-part-head"><div><span class="tag">'+SKILLS_PART_LABELS_V13[part]+'</span><h2>'+cfg.title+'</h2></div><span class="small muted">Question '+(idx+1)+' / '+total+'</span></div>'+mediaIntro+((part==="reading")?'<div class="skills-reading-brief">'+imgHTML("japan","Okinawa, Japan","A subtropical island group in southern Japan.","globe",false)+'<h3>Reading · The healthy people of Okinawa</h3><p>Read the passage carefully. Use details from the text as evidence; the questions will appear one at a time.</p></div>':"")+body+'<div class="qcard"><div class="qtext">'+esc(prompt)+'</div><div class="skills-choice-stack">'+choices.map(function(x){return '<button class="btn btn-ghost" data-st-choice="'+esc(x.value)+'">'+esc(x.label)+'</button>';}).join("")+'</div><div class="fad-feedback" data-st-feedback aria-live="polite">Choose one response. You can retry after a hint.</div><p class="small muted">Progress is saved as you work through this section.</p></div>';
 }
 function renderSkillsTestPanelV13(el){
 var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
