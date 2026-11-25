@@ -353,5 +353,187 @@ if(FRESH_PREVIEW){
  bar.innerHTML="<b>TEACHER PREVIEW</b><span>Fresh session · progress is temporary · refresh to restart from the beginning</span>";
  document.body.insertBefore(bar,document.body.firstChild);
 }
+
+/* === Unified single-attempt question flow === */
+const fcaCompleteTaskOriginal=completeTask;
+completeTask=function(id,res,zone){
+ if(S.results&&S.results[id])return;
+ fcaCompleteTaskOriginal(id,res,null);
+ if(zone){
+  zone.innerHTML=donePanelHTML(id);
+  zone.classList.add("fca-task-complete");
+ }
+};
+function fcaQuestionSequence(zone,cfg,items){
+ let index=0,score=0,errors=0,xp=0,log=[];
+ function show(){
+  if(index>=items.length){
+   completeTask(cfg.id,{score:score,max:items.length,errors:errors,xp:xp,log:log},zone);
+   return;
+  }
+  const item=items[index],options=shuffle(item.options.map(String));
+  zone.innerHTML=
+   '<div class="progress-line fca-question-progress"><i style="width:'+(index/items.length*100)+'%"></i></div>'+
+   '<div class="fca-question-meta"><span>'+(cfg.label||"QUESTION")+' '+(index+1)+' / '+items.length+'</span><span>One attempt</span></div>'+
+   '<div class="qcard fca-one-question"><div class="qtext">'+(item.prompt||"")+'</div>'+
+   '<div class="fca-question-options">'+options.map(function(option,i){
+    return '<button type="button" class="opt fca-answer-option" data-option="'+i+'">'+String.fromCharCode(65+i)+'. '+esc(option)+'</button>';
+   }).join("")+'</div>'+
+   '<div class="fad-feedback fca-answer-feedback" aria-live="polite"></div>'+
+   '<div class="footer-bar fca-question-footer"><span class="small muted">Question '+(index+1)+' of '+items.length+'</span><button type="button" class="btn btn-gold" id="fcaQuestionNext" disabled>Continue '+icon("right")+'</button></div></div>';
+  let locked=false;
+  $(".fca-answer-option",zone).forEach(function(button){
+   button.addEventListener("click",function(event){
+    if(locked)return;
+    locked=true;
+    const picked=options[Number(button.dataset.option)];
+    const correct=Array.isArray(item.correct)?item.correct.includes(picked):picked===String(item.correct);
+    $(".fca-answer-option",zone).forEach(function(x){x.disabled=true;});
+    button.classList.add(correct?"right":"wrong");
+    if(correct){score++;xp+=8;noteAnswer(true,event,8);}
+    else{errors++;noteAnswer(false,event);}
+    log.push({q:item.logQuestion||String(item.prompt||"").replace(/<[^>]*>/g,""),user:picked,correct:Array.isArray(item.correct)?item.correct.join(" / "):String(item.correct),ok:correct,focus:item.explanation||"Review the source text or language point."});
+    $(".fca-answer-feedback",zone).textContent=correct
+     ?"Answer recorded. Continue to the next question."
+     :"Answer recorded. This mistake lowers the score, but does not stop the mission.";
+    $("#fcaQuestionNext",zone).disabled=false;
+   });
+  });
+  $("#fcaQuestionNext",zone).addEventListener("click",function(){if(locked){index++;show();}});
+ }
+ show();
+}
+engMCQ=function(zone,cfg){
+ fcaQuestionSequence(zone,cfg,cfg.items.map(function(it){
+  return {prompt:it.q,options:it.opts,correct:it.opts[it.ans],explanation:it.expl};
+ }));
+};
+engGapsStepped=function(zone,cfg){
+ fcaQuestionSequence(zone,Object.assign({label:"GAP QUESTION"},cfg),cfg.items.map(function(it){
+  return {prompt:it.pre+' <span class="gap">________</span> '+(it.post||""),options:it.opts,correct:it.ans,explanation:it.expl,logQuestion:it.pre+" ___ "+(it.post||"")};
+ }));
+};
+engGaps=function(zone,cfg){
+ fcaQuestionSequence(zone,Object.assign({label:"GAP QUESTION"},cfg),cfg.items.map(function(it){
+  return {prompt:it.pre+' <span class="gap">________</span> '+(it.post||""),options:it.opts,correct:it.ans,explanation:it.expl,logQuestion:it.pre+" ___ "+(it.post||"")};
+ }));
+};
+engFadQuizStepped=function(zone,cfg){
+ fcaQuestionSequence(zone,Object.assign({label:"EVIDENCE CHECK"},cfg),cfg.items.map(function(it){
+  return {prompt:it.q,options:it.opts,correct:it.opts[it.ans],explanation:it.expl};
+ }));
+};
+engFadQuiz=function(zone,cfg){
+ fcaQuestionSequence(zone,Object.assign({label:"EVIDENCE CHECK"},cfg),cfg.items.map(function(it){
+  return {prompt:it.q,options:it.opts,correct:it.opts[it.ans],explanation:it.expl};
+ }));
+};
+/* Vocabulary matching: fixed target word, one definition choice per screen. */
+engMatch=function(zone,cfg){
+ const pairs=cfg.pairs;
+ const questions=pairs.map(function(pair){
+  const distractors=shuffle(pairs.filter(function(x){return x.t!==pair.t;}).map(function(x){return x.d;})).slice(0,3);
+  return {prompt:'Which definition matches <b>'+esc(pair.t)+'</b>?',options:[pair.d].concat(distractors),correct:pair.d,logQuestion:pair.t,explanation:"Compare the meaning with the vocabulary card and reading context."};
+ });
+ fcaQuestionSequence(zone,{id:cfg.id,label:"VOCABULARY MATCH"},questions);
+};
+/* The 3A pair activity is recorded once; a short response loses the point,
+   but never prevents the learner from continuing. */
+if(typeof fcaCrosswordStep!=="undefined"){
+ fcaCrosswordStep.build=function(b){
+  b.innerHTML=stepShell("Communicative Practice","users","Your Plate, Our Planet · Pair Vocabulary","Adapted from Insight 2e Pre-Intermediate Communication Worksheet 3A.")+
+   '<div class="card"><div class="task-zone fca-comm-step-zone">'+communicativeActivityMarkup()+'</div></div>';
+  const zone=b.querySelector(".task-zone");
+  if(!zone)return;
+  zone.insertAdjacentHTML("afterbegin",'<div class="progress-line fca-question-progress"><i style="width:0%"></i></div><div class="fca-question-meta"><span>PAIR TASK · 1 / 1</span><span>One submission</span></div>');
+  const button=$("#fcaSubmitComm",zone);
+  if(button)button.textContent="Save response & continue";
+  if(!button)return;
+  button.addEventListener("click",function(){
+   if(S.results["3a-crossword"])return;
+   const field=$("#fcaCommResponse",zone),value=field?field.value.trim():"";
+   const words=value.split(/\s+/).filter(Boolean).length,passed=words>=20;
+   const log=[{q:"Pair vocabulary challenge · explain without saying the word",user:value||"No written explanation recorded",correct:"Explain at least three expressions and identify each as a noun or a verb.",ok:passed,focus:"Use your own wording, let your partner guess and identify the part of speech."}];
+   completeTask("3a-crossword",{score:passed?1:0,max:1,errors:passed?0:1,xp:passed?10:0,log:log},zone);
+   const entry={id:"3a-crossword-pair-notes",route:"Mission 3A · Your Plate, Our Planet",prompt:"Pair vocabulary challenge · explain without saying the word",text:value,analysis:analyseWriting(value,"Food vocabulary explanations"),updatedAt:new Date().toISOString()};
+   const old=S.writingPortfolio.find(function(x){return x.id===entry.id;});
+   if(old)Object.assign(old,entry);else S.writingPortfolio.push(entry);
+   save();
+  });
+ };
+}
+/* Reading split is based on article paragraphs only, not captions or nested notes. */
+const fcaReadingStepOneScreen=LESSONS[0].steps.find(function(x){return x.task==="3a-read";});
+if(fcaReadingStepOneScreen){
+ const oldBuild=fcaReadingStepOneScreen.build;
+ fcaReadingStepOneScreen.build=function(b){
+  oldBuild(b);
+  const reading=b.querySelector(".reading");if(!reading)return;
+  const direct=Array.from(reading.children);
+  const visual=direct.find(function(x){return x.querySelector&&x.querySelector("img,.ph");})||null;
+  const paragraphs=direct.filter(function(x){return x.tagName==="P";});
+  if(paragraphs.length<2)return;
+  const first=document.createElement("div"),second=document.createElement("div");
+  first.className="fca-reading-page is-current";second.className="fca-reading-page";second.hidden=true;
+  if(visual)first.appendChild(visual);
+  paragraphs.forEach(function(p,i){(i<2?first:second).appendChild(p);});
+  const nav=document.createElement("div");nav.className="fca-reading-nav";
+  nav.innerHTML='<span class="fca-reading-count">PAGE <b id="fcaReadPage">1</b> / 2</span><button type="button" class="btn btn-gold btn-sm" id="fcaReadNext">Next page '+icon("right")+'</button>';
+  reading.innerHTML="";reading.append(first,second,nav);
+  $("#fcaReadNext",reading).addEventListener("click",function(){
+   const toSecond=second.hidden;
+   first.hidden=toSecond;second.hidden=!toSecond;
+   $("#fcaReadPage",reading).textContent=toSecond?"2":"1";
+   $("#fcaReadNext",reading).innerHTML=toSecond?'Back to page 1':'Next page '+icon("right");
+   first.classList.toggle("is-current",!toSecond);second.classList.toggle("is-current",toSecond);
+   reading.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+ };
+}
+/* Skills Test: do not render a second copy of Track 04. The assessment's
+   dedicated audio card remains; answers are one-shot and wrong answers advance. */
+const fcaSkillRenderOld=renderSkillPartV13;
+renderSkillPartV13=function(form,part){
+ let markup=fcaSkillRenderOld(form,part);
+ if(part==="listening")markup=markup.replace(/<div class="fca-audio-panel">[\s\S]*?<\/div>/,"");
+ markup=markup.replace("You can retry after a hint.","One attempt per question. An incorrect answer lowers the score only.");
+ markup=markup.replace("Review from the beginning","");
+ return markup;
+};
+checkSkillPartV13=function(el,part,event,value){
+ const form="A",cfg=SKILLS3_V13.A[part],root=$("#a-skills",el),id=skillResultsKeyV13(form,part);
+ const feedback=$("[data-st-feedback]",root),saved=S.skillAnswers.A[part]||(S.skillAnswers.A[part]={});
+ if(cfg.kind==="writing"){
+  const draft=$("[data-st-draft]",root).value.trim(),ratings=[].slice.call(root.querySelectorAll("[data-st-rubric]"));
+  const score=ratings.reduce(function(n,x){return n+(x.value===""?0:Number(x.value));},0);
+  const old=S.results[id];
+  const rec={score:score,max:15,errors:0,done:true,selfAssessment:true,bestScore:score,attempts:(old&&old.attempts||0)+1};
+  S.results[id]=rec;S.logs[id]=[{q:"Writing self-assessment",user:"Draft saved; rubric "+score+"/15",ok:true}];
+  const draftField=$("[data-st-draft]",root);
+  saved.draft=draft;
+  ratings.forEach(function(x){saved["r"+x.dataset.stRubric]=x.value||"0";});
+  save();renderSkillsTestPanelV13(el);return;
+ }
+ const idx=(S.skillIndexByPart&&S.skillIndexByPart[part])||0;
+ const total=cfg.kind==="dialogue"?cfg.correct.length:cfg.items.length;
+ if(!value||idx>=total)return;
+ if(!S.skillRun)S.skillRun={};
+ const run=S.skillRun[part]||(S.skillRun[part]={score:0,errors:0,log:[]});
+ const expected=cfg.correct[idx],ok=value===expected;
+ if(ok){run.score++;noteAnswer(true,event,10);addXP(10);}
+ else{run.errors++;noteAnswer(false,event);}
+ const q=cfg.kind==="dialogue"?"Dialogue gap "+(idx+1):cfg.kind==="tf"?cfg.items[idx]:cfg.items[idx][0];
+ const focus=skillHintV13("A",part,idx);
+ run.log.push({q:q,user:value,ok:ok,focus:focus});
+ saved[idx]=value;S.skillIndexByPart[part]=idx+1;
+ if(idx+1>=total){
+  const old=S.results[id];
+  S.results[id]={score:run.score,max:total,errors:run.errors,done:true,bestScore:run.score,attempts:(old&&old.attempts||0)+1,xp:run.score*10};
+  S.logs[id]=run.log;delete S.skillRun[part];
+  completeTask(id,{score:run.score,max:total,errors:run.errors,xp:run.score*10,log:run.log},null);
+ }
+ save();renderSkillsTestPanelV13(el);
+};
+
 App.go({name:"start"});updateTopbar();
 })();
