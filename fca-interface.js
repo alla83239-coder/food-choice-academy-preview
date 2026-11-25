@@ -30,7 +30,7 @@ function renderStudentGuide(el){
  ["Финальная защита","После завершения миссий откройте Final Project, проверьте предложение, заполните самооценку и представьте бизнес-план."]
  ];
  el.innerHTML='<section class="fca-student-guide"><div class="photo-hero fca-guide-hero"><div class="veil"></div><div class="ph-content"><div class="kicker">FOOD CHOICE ACADEMY · STUDENT HANDBOOK</div><h1>Инструкция для студента</h1><p>Как пользоваться системой и выполнять проект по шагам.</p></div></div><div class="fca-guide-intro"><span class="tag">Начните отсюда</span><h2>Проходите курс последовательно — экран за экраном</h2><p>Используйте боковое меню, Progress Bar и смартфон помощников.</p></div><div class="fca-guide-grid">'+rows.map(function(x,i){return '<article class="fca-guide-card"><span>'+String(i+1).padStart(2,"0")+'</span><div><h3>'+x[0]+'</h3><p>'+x[1]+'</p></div></article>';}).join("")+'</div><div class="fca-guide-actions"><button class="btn btn-ghost" data-action="nav" data-page="missions">← Карта миссий</button><button class="btn btn-gold" id="fcaGuideStart">Начать / продолжить обучение '+icon("right")+'</button></div></section>';
- document.querySelector("#fcaGuideStart").addEventListener("click",function(){if(S.name)resumeFoodChoice();else App.go({name:"start"});});
+ document.querySelector("#fcaGuideStart").addEventListener("click",function(){if(S.name)Actions["resume-fc"]();else App.go({name:"start"});});
 }
 const helpers=[{id:"harper",name:"Ms Harper",role:"Project manager"},{id:"jess",name:"Jess",role:"English coach"},{id:"ben",name:"Ben",role:"Study guide"}];
 function phoneHint(id){
@@ -57,7 +57,7 @@ function updatePhone(){
  document.querySelector("#fcaPhoneMessage").textContent=phoneHint(id);
  dock.querySelectorAll(".fca-phone-helper").forEach(b=>b.classList.toggle("active",b.dataset.helper===id));
 }
-if(!NAV.some(x=>x.page==="studentGuide"))NAV.splice(1,0,{page:"studentGuide",label:"Student Guide",ic:"book-open"});
+if(!NAV.some(x=>x.page==="studentGuide"))NAV.splice(1,0,{page:"studentGuide",label:"Student Guide",ic:"book"});
 const navBase=Actions.nav;
 Actions.nav=function(button){if(button&&button.dataset.page==="studentGuide"){App.go({name:"studentGuide"});return;}return navBase(button);};
 const startBase=renderStart;
@@ -75,6 +75,15 @@ App.go=function(route){
  document.body.classList.toggle("no-bar",!!hide);document.querySelector("#topbar").classList.toggle("on",!hide);
  createPhone();updatePhone();updateMissionProgress();return result;
 };
-createPhone();if(S.route&&S.route.name==="start"&&!S.name){document.body.classList.add("no-bar");document.querySelector("#topbar").classList.remove("on");}
+createPhone();
+if(S.route&&S.route.name==="start"&&!S.name){
+ document.body.classList.add("no-bar");document.querySelector("#topbar").classList.remove("on");
+ const current=document.querySelector("#app .screen");
+ if(current&&!current.querySelector(".fca-start-guide")){
+  const button=document.createElement("button");button.type="button";button.className="btn btn-ghost btn-sm fca-start-guide";button.textContent="Инструкция для студента";
+  button.addEventListener("click",function(){App.go({name:"studentGuide"});});
+  (current.querySelector(".hero-cta")||current).appendChild(button);
+ }
+}
 
 })();
