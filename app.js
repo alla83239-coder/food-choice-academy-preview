@@ -1095,15 +1095,26 @@ Actions["start-fc-mission"]=function(btn){
  }
 };
 function fcPortfolioMarkup(){
+ const extra=S.additionalMaterials||{};
+ const survey=extra.survey?((extra.survey.venue||"Venue not selected")+" · "+(extra.survey.answers||[]).filter(Boolean).length+" notes"):"Not completed";
+ const rice=extra.rice?([extra.rice.dishes,extra.rice.method,extra.rice.comparison].filter(Boolean).length+"/3 sections recorded"):"Not completed";
+ const evidence=extra.evidence?(extra.evidence.source||"Evidence map recorded"):"Not completed";
+ const research=extra.research?(extra.research.evaluation||"Research review recorded"):"Not completed";
  const items=[
   ["Starting hypothesis",S.missionHypothesis||"Not submitted yet"],
   ["Packaging decision",S.decisions.pack?.title||S.decisions.pack?.id||"Not decided"],
   ["Nutrition report",S.results["3b-plan"]?S.results["3b-plan"].score+"/2 recommendations":"Not completed"],
+  ["Fad Diets evidence review",S.results["3b-fad"]?S.results["3b-fad"].score+"/"+S.results["3b-fad"].max+" items checked":"Not completed"],
   ["Vending-machine decision",S.decisions.vend?.title||S.decisions.vend?.id||"Not decided"],
+  ["Food survey",survey],
+  ["Rice Lab",rice],
+  ["Evidence map",evidence],
+  ["Research evaluation",research],
   ["Shopping plan",S.trolley?S.trolley.met+"/5 constraints · £"+Number(S.trolley.spent).toFixed(2):"Not completed"],
-  ["Launch announcement",S.poster?.title|| (S.results["3e-poster"]?"Completed":"Not completed")]
+  ["Launch announcement",S.poster?.title||(S.results["3e-poster"]?"Completed":"Not completed")],
+  ["Written responses",(S.writingPortfolio||[]).length+" saved"]
  ];
- return '<div class="card fc-portfolio"><b>My Smart Food Choice portfolio</b><p class="small muted">Evidence collected during the missions is gathered here automatically.</p><div class="fc-portfolio-grid">'+items.map(x=>'<div><span>'+esc(x[0])+'</span><b>'+esc(String(x[1]))+'</b></div>').join("")+'</div><div class="fc-portfolio-progress"><span>'+fcProgress()+' / 12 missions recorded</span><span>'+S.xp+' XP</span></div></div>';
+ return '<div class="card fc-portfolio"><b>My Smart Food Choice project</b><p class="small muted">A single workspace for the evidence, decisions, research, written work and deliverables created across the twelve missions and extension activities.</p><div class="fc-portfolio-grid">'+items.map(x=>'<div><span>'+esc(x[0])+'</span><b>'+esc(String(x[1]))+'</b></div>').join("")+'</div><div class="fc-portfolio-progress"><span>'+fcProgress()+' / 12 missions recorded</span><span>'+S.xp+' XP</span></div></div>';
 }
 const fcDashboardPortfolioBase=renderFoodChoiceDashboard;
 renderFoodChoiceDashboard=function(el){
