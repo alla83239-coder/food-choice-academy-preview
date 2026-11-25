@@ -745,6 +745,74 @@ function buildSmartProcurement(zone){
  calculate();
 }
 
+
+function buildCanteenLaunch(zone){
+ const equipment=[
+  {id:"fridge",label:"Commercial refrigerator / chilled storage"},
+  {id:"freezer",label:"Freezer"},
+  {id:"prep",label:"Food preparation tables and sinks"},
+  {id:"handwash",label:"Dedicated hand-washing station"},
+  {id:"cooking",label:"Oven, hob or safe reheating equipment"},
+  {id:"hot-hold",label:"Hot-holding equipment and temperature probes"},
+  {id:"display",label:"Chilled display cabinet"},
+  {id:"dish",label:"Dishwasher and cleaning station"},
+  {id:"pos",label:"POS / cashless payment terminal"},
+  {id:"waste",label:"Clearly labelled recycling and food-waste stations"},
+  {id:"allergen",label:"Allergen and ingredient information display"},
+  {id:"vending",label:"Vending machine with stock and temperature controls"}
+ ];
+ const milestones=[
+  {id:"approval",when:"4 weeks before opening",task:"Confirm permission, budget, suppliers and responsibilities."},
+  {id:"layout",when:"3 weeks before opening",task:"Approve the floor plan and order essential equipment."},
+  {id:"install",when:"2 weeks before opening",task:"Install equipment, test utilities and set up cleaning procedures."},
+  {id:"training",when:"1 week before opening",task:"Train staff in hygiene, allergens, temperature checks and customer service."},
+  {id:"stock",when:"2 days before opening",task:"Receive stock, check dates and condition, label products and load the vending machine."},
+  {id:"trial",when:"1 day before opening",task:"Run a trial service, test payment, check food flow and correct problems."},
+  {id:"open",when:"Opening day",task:"Launch the canteen, collect feedback and monitor waste, sales and stock."}
+ ];
+ const prev=S.canteenLaunch||{};
+ const selectedEquipment=new Set(prev.equipment||["fridge","prep","handwash","cooking","display","dish","pos","waste","allergen","vending"]);
+ const completed=new Set(prev.milestones||milestones.map(function(m){return m.id;}));
+ zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Operations Manager · Canteen Launch</b><p>Plan the space, equipment and opening sequence. Think about safe food flow, service, storage, cleaning and the student experience.</p></div></div>'+
+ '<div class="card"><h3>1. Choose the service model</h3><div class="fca-option-grid" id="layoutType"><button type="button" class="opt'+((prev.layout||"self-service")==="counter"?" right":"")+'" data-layout="counter"><b>Counter service</b><small class="muted">Staff serve meals from the counter.</small></button><button type="button" class="opt'+((prev.layout||"self-service")==="self-service"?" right":"")+'" data-layout="self-service"><b>Self-service</b><small class="muted">Students select prepared items and pay at checkout.</small></button><button type="button" class="opt'+((prev.layout||"self-service")==="hybrid"?" right":"")+'" data-layout="hybrid"><b>Hybrid</b><small class="muted">Self-service for cold food, staffed hot-food counter.</small></button></div></div>'+
+ '<div class="card"><h3>2. Canteen floor plan · service flow</h3><p class="small muted">The diagram is a planning concept. Keep deliveries and waste returns away from the main student queue.</p><div class="canteen-floorplan"><div class="canteen-flow"><span>01 · Receiving & storage</span><i>→</i><span>02 · Preparation</span><i>→</i><span>03 · Cooking / heating</span></div><div class="canteen-flow"><span>04 · Counter & chilled display</span><i>→</i><span>05 · Seating area</span><i>→</i><span>06 · Returns, sorting & waste</span></div><div class="canteen-entry">Student entrance and queue → one-way service route → exit</div></div><div class="field"><label>Describe the most important layout decision</label><textarea id="layoutNote" rows="3" placeholder="For example: separate the delivery entrance from the student queue; keep chilled food visible and accessible.">'+esc(prev.layoutNote||"")+'</textarea></div></div>'+
+ '<div class="card"><h3>3. Select equipment and facilities</h3><p class="small muted">Choose the equipment needed for your service model. Confirm capacity, energy use, maintenance and safety requirements with suppliers.</p><div class="fca-option-grid" id="equipmentGrid">'+equipment.map(function(item){return '<button type="button" class="opt equipment-choice'+(selectedEquipment.has(item.id)?' right':'')+'" data-id="'+item.id+'">'+item.label+'</button>';}).join("")+'</div></div>'+
+ '<div class="card"><h3>4. Opening timeline</h3><div id="launchMilestones">'+milestones.map(function(item){return '<label class="launch-milestone"><input type="checkbox" data-milestone="'+item.id+'" '+(completed.has(item.id)?'checked':'')+'><span><b>'+item.when+'</b><small>'+item.task+'</small></span></label>';}).join("")+'</div><div class="field"><label>Planned opening date</label><input id="launchDate" type="date" value="'+esc(prev.date||"")+'"></div><div class="field"><label>Project / canteen name</label><input id="launchName" maxlength="60" placeholder="e.g. The Green Table" value="'+esc(prev.name||"")+'"></div><div class="field"><label>Team responsibilities</label><textarea id="launchRoles" rows="3" placeholder="Project lead · kitchen manager · procurement · service and vending team">'+esc(prev.roles||"")+'</textarea></div></div>'+
+ '<div class="card soft"><h3>Launch readiness checks</h3><div id="launchChecks"></div></div><div class="footer-bar"><span class="small muted" id="launchFeedback">Complete the launch plan and name the canteen.</span><button class="btn btn-gold" id="saveLaunch" disabled>Save opening plan '+icon("check")+'</button></div>';
+ let layout=prev.layout||"self-service";
+ function selectedMilestones(){return milestones.filter(function(m){return $('[data-milestone="'+m.id+'"]',zone).checked;}).map(function(m){return m.id;});}
+ function refresh(){
+  const count=selectedEquipment.size,planned=selectedMilestones().length;
+  const checks=[
+   {label:"Service model selected",ok:!!layout},
+   {label:"At least 8 equipment / facility items selected",ok:count>=8},
+   {label:"Opening timeline contains at least 6 milestones",ok:planned>=6},
+   {label:"Opening date entered",ok:!!$("#launchDate",zone).value},
+   {label:"Canteen name entered",ok:!!$("#launchName",zone).value.trim()},
+   {label:"Team responsibilities described",ok:$("#launchRoles",zone).value.trim().length>=15},
+   {label:"A safe one-way service flow considered",ok:$("#layoutNote",zone).value.trim().length>=15}
+  ];
+  $("#launchChecks",zone).innerHTML=checks.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'x')+' '+c.label+'</div>';}).join("");
+  const ready=checks.every(function(c){return c.ok;});
+  $("#saveLaunch",zone).disabled=!ready;
+  $("#launchFeedback",zone).textContent=planned+" / "+milestones.length+" milestones planned · "+count+" equipment items selected";
+  return {checks:checks,ready:ready};
+ }
+ $("#layoutType",zone).addEventListener("click",function(e){const btn=e.target.closest("[data-layout]");if(!btn)return;layout=btn.dataset.layout;$$("[data-layout]",zone).forEach(function(x){x.classList.toggle("right",x===btn);});refresh();});
+ $("#equipmentGrid",zone).addEventListener("click",function(e){const btn=e.target.closest(".equipment-choice");if(!btn)return;const id=btn.dataset.id;if(selectedEquipment.has(id)){selectedEquipment.delete(id);btn.classList.remove("right");}else{selectedEquipment.add(id);btn.classList.add("right");}refresh();});
+ zone.addEventListener("input",function(e){if(e.target.matches("#layoutNote,#launchDate,#launchName,#launchRoles"))refresh();});
+ zone.addEventListener("change",function(e){if(e.target.matches("[data-milestone]"))refresh();});
+ $("#saveLaunch",zone).addEventListener("click",function(e){
+  const status=refresh();if(!status.ready)return;
+  S.canteenLaunch={layout:layout,layoutNote:$("#layoutNote",zone).value.trim(),equipment:[...selectedEquipment],milestones:selectedMilestones(),date:$("#launchDate",zone).value,name:$("#launchName",zone).value.trim(),roles:$("#launchRoles",zone).value.trim(),createdAt:Date.now()};
+  save();noteAnswer(true,e,60);
+  completeTask("3e-opening",{score:status.checks.length,max:status.checks.length,errors:0,xp:60,log:status.checks.map(function(c){return {q:c.label,user:"met",correct:"met",ok:true};})},zone);
+  const out=document.createElement("div");out.className="outcome";out.innerHTML='<span class="tag">'+icon("check")+' Opening plan saved</span><h3>'+esc(S.canteenLaunch.name)+'</h3><p>'+esc(S.canteenLaunch.layout)+' service · '+S.canteenLaunch.equipment.length+' equipment items · '+S.canteenLaunch.milestones.length+' milestones</p>';
+  zone.insertBefore(out,zone.firstChild);
+ });
+ refresh();
+}
+
 const LESSONS=[
 {code:"3A",theme:"3a",img:"l3a",title:"The Real Cost of Food",badge:0,sub:"Reading & Vocabulary • CLIL: Environmental Science",problem:"The canteen throws away <b>66 kg of packaging every week</b> — 93% single-use plastic. Understand the real cost of food before you fix it.",objectives:{content:["Trace the life cycle of a food product","Explain carbon footprint, food miles and packaging waste"],language:["7 compound nouns & adjectives","Reading for specific information","Sequencing a process with present simple verbs"]},quote:{who:"harper",text:"You turned our rubbish into evidence. Now I see where the plastic comes from!"},steps:[
 {tag:"Vocabulary",ic:"book",title:"Eco Vocabulary Lab",task:"3a-vocab",build(b){b.innerHTML=stepShell("Vocabulary","book","Eco Vocabulary Lab","Match the compound words to their definitions. Beat 60 seconds for a bonus achievement!")+taskCard();engMatch($(".task-zone",b),{id:"3a-vocab",pairs:VOC3A,speedAch:true});}},
@@ -837,7 +905,8 @@ const LESSONS=[
 {tag:"Vocabulary",ic:"note",title:"Abbreviations",task:"3e-abbr",build(b){b.innerHTML=stepShell("Vocabulary","note","Abbreviations","Match the short forms to their full meanings.")+taskCard();engMatch($(".task-zone",b),{id:"3e-abbr",pairs:ABBR3E});}},
 {tag:"Writing",ic:"note",title:"The Note to Ben",task:"3e-note",build(b){b.innerHTML=stepShell("Writing","note","The Note to Ben","You must work late. Build the note: apologise, explain, suggest, say when you're back.")+`<div class="card"><div class="task-zone"></div></div>`;buildNote($(".task-zone",b));}},
 {tag:"Writing",ic:"poster",title:"The Launch Announcement",task:"3e-poster",build(b){b.innerHTML=stepShell("Writing","poster","The Launch Announcement","Design the noticeboard announcement. Every required element earns points — and this poster goes into your final project!")+`<div class="card"><div class="task-zone"></div></div>`;buildPoster($(".task-zone",b));}},
-{tag:"Functional Language",ic:"phone",title:"Messages: Sam Replies",task:"3e-chat",build(b){b.innerHTML=stepShell("Functional Language","phone","Messages: Sam Replies","Handle the refusal, re-suggest, and confirm the details.")+`<div class="card"><div class="task-zone"></div></div>`;engDialogue($(".task-zone",b),CHAT3E);}}
+{tag:"Functional Language",ic:"phone",title:"Messages: Sam Replies",task:"3e-chat",build(b){b.innerHTML=stepShell("Functional Language","phone","Messages: Sam Replies","Handle the refusal, re-suggest, and confirm the details.")+`<div class="card"><div class="task-zone"></div></div>`;engDialogue($(".task-zone",b),CHAT3E);}},
+{tag:"Project Deliverable",ic:"layout-dashboard",title:"Canteen Layout & Grand Opening Plan",task:"3e-opening",build(b){b.innerHTML=stepShell("Project Deliverable","layout-dashboard","Canteen Layout & Grand Opening Plan","Plan the service model, floor plan, equipment and opening sequence. Record who is responsible and what must be ready before the first customer arrives.")+`<div class="card"><div class="task-zone"></div></div>`;buildCanteenLaunch($(".task-zone",b));}}
 ]}];
 /* ================= VOCABULARY (dictionary) ================= */
 const VOCAB=[
@@ -1558,7 +1627,7 @@ const FOOD_CHOICE_MISSIONS = [
  {title:"Junk Food Investigation",subtitle:"Read critically and inspect packaging",chapter:"3D · Junk Food Heaven",image:"burger",target:{l:3,s:0},brief:"Analyse the writer’s viewpoint, then build accurate vocabulary for food containers.",requires:["3d-read","3d-cont"]},
  {title:"Grammar Workshop",subtitle:"Add precise information",chapter:"3D · Relative Clauses",image:"grammar",target:{l:3,s:2},brief:"Use relative pronouns and adverbs to describe people, products, places, ownership and time.",requires:["3d-rel","3d-cook"]},
  {title:"Message Studio",subtitle:"Write for a real audience",chapter:"3E · Spread the Word",image:"l3e",target:{l:4,s:0},brief:"Use abbreviations and concise note style, then respond to a message with a clear plan.",requires:["3e-abbr","3e-note","3e-chat"]},
- {title:"Canteen Launch & Project Pitch",subtitle:"Open the canteen and defend the complete business proposal",chapter:"Project Portfolio",image:"final",target:{l:4,s:2},brief:"Present the complete school canteen proposal: nutrition research, carbon footprint, menu, supplier comparison, shopping list, budget, canteen layout, vending-machine assortment, opening plan and expected impact.",requires:["3d-shop","3e-poster"]}
+ {title:"Canteen Launch & Project Pitch",subtitle:"Open the canteen and defend the complete business proposal",chapter:"Project Portfolio",image:"final",target:{l:4,s:2},brief:"Present the complete school canteen proposal: nutrition research, carbon footprint, menu, supplier comparison, shopping list, budget, canteen layout, vending-machine assortment, opening plan and expected impact.",requires:["3d-shop","3e-opening","3e-poster"]}
 ];
 function fcMissionDone(i){
  const m=FOOD_CHOICE_MISSIONS[i];
