@@ -1790,26 +1790,27 @@ Actions["start-fc-mission"]=function(btn){
  }
 };
 function fcPortfolioMarkup(){
- const extra=S.additionalMaterials||{};
- const survey=extra.survey?((extra.survey.venue||"Venue not selected")+" · "+(extra.survey.answers||[]).filter(Boolean).length+" notes"):"Not completed";
- const rice=extra.rice?([extra.rice.dishes,extra.rice.method,extra.rice.comparison].filter(Boolean).length+"/3 sections recorded"):"Not completed";
- const evidence=extra.evidence?(extra.evidence.source||"Evidence map recorded"):"Not completed";
- const research=extra.research?(extra.research.evaluation||"Research review recorded"):"Not completed";
+ const nutrition=S.results["3b-athlete"]?S.results["3b-athlete"].score+"/"+S.results["3b-athlete"].max+" research checks":"Not completed";
+ const menu=S.menuPlan?S.menuPlan.name+" · "+S.menuPlan.score+"/"+S.menuPlan.max+" checks":"Not completed";
+ const carbon=S.procurement?S.procurement.items.length+" ingredients · "+S.procurement.footprint.toFixed(2)+" kg CO₂e":"Not completed";
+ const shopping=S.procurement?"£"+S.procurement.cost.toFixed(2)+" · "+S.procurement.items.length+" ingredients":"Not completed";
+ const vending=S.vendingStock?S.vendingStock.products.length+" products selected":"Not completed";
+ const launch=S.canteenLaunch?S.canteenLaunch.name+" · "+S.canteenLaunch.milestones.length+" opening milestones":"Not completed";
  const items=[
   ["Starting hypothesis",S.missionHypothesis||"Not submitted yet"],
   ["Packaging decision",S.decisions.pack?.title||S.decisions.pack?.id||"Not decided"],
-  ["Nutrition report",S.results["3b-plan"]?S.results["3b-plan"].score+"/2 recommendations":"Not completed"],
-  ["Fad Diets evidence review",(S.results["3b-fad"]?"Article check recorded · ":"")+(S.results["3b-fad-table"]?"comparison table saved · ":"")+(S.results["3b-fad-vocab"]?"8 terms and 8 sentences saved": "Vocabulary practice not completed")],
+  ["Teen nutrition research",nutrition],
+  ["One-day canteen menu",menu],
   ["Vending-machine decision",S.decisions.vend?.title||S.decisions.vend?.id||"Not decided"],
-  ["Food survey",survey],
-  ["Rice Lab",rice],
-  ["Evidence map",evidence],
-  ["Research evaluation",research],
-  ["Shopping plan",S.trolley?S.trolley.met+"/5 constraints · £"+Number(S.trolley.spent).toFixed(2):"Not completed"],
+  ["Vending assortment",vending],
+  ["Carbon-aware procurement",carbon],
+  ["Shopping budget",shopping],
+  ["Supplier and sourcing note",S.procurement?.note||"Not recorded"],
+  ["Canteen layout and opening",launch],
   ["Launch announcement",S.poster?.title||(S.results["3e-poster"]?"Completed":"Not completed")],
   ["Written responses",(S.writingPortfolio||[]).length+" saved"]
  ];
- return '<div class="card fc-portfolio"><b>My Smart Food Choice project</b><p class="small muted">A single workspace for the evidence, decisions, research, written work and deliverables created across the twelve missions and extension activities.</p><div class="fc-portfolio-grid">'+items.map(x=>'<div><span>'+esc(x[0])+'</span><b>'+esc(String(x[1]))+'</b></div>').join("")+'</div><div class="fc-portfolio-progress"><span>'+fcProgress()+' / 12 missions recorded</span><span>'+S.xp+' XP</span></div></div>';
+ return '<div class="card fc-portfolio"><b>My Healthy & Sustainable Canteen Project</b><p class="small muted">A single workspace for nutrition evidence, product choices, the menu, carbon-aware procurement, vending stock and the canteen opening plan.</p><div class="fc-portfolio-grid">'+items.map(x=>'<div><span>'+esc(x[0])+'</span><b>'+esc(String(x[1]))+'</b></div>').join("")+'</div><div class="fc-portfolio-progress"><span>'+fcProgress()+' / 12 missions recorded</span><span>'+S.xp+' XP</span></div></div>';
 }
 const fcDashboardPortfolioBase=renderFoodChoiceDashboard;
 renderFoodChoiceDashboard=function(el){
@@ -1818,9 +1819,9 @@ renderFoodChoiceDashboard=function(el){
  if(roadmap)roadmap.insertAdjacentHTML("afterend",fcPortfolioMarkup());
 };
 
-/* Final alignment of the learner-facing mission map with the source sequence. */
+/* Final alignment of the learner-facing mission map with the canteen project deliverables. */
 FOOD_CHOICE_MISSIONS[9].requires=["3d-rel","3d-cook","3d-shop"];
-FOOD_CHOICE_MISSIONS[10].requires=["3e-abbr","3e-note","3e-poster","3e-chat"];
+FOOD_CHOICE_MISSIONS[10].requires=["3e-abbr","3e-note","3e-poster","3e-chat","3e-opening"];
 FOOD_CHOICE_MISSIONS[11].requires=[];
 FOOD_CHOICE_MISSIONS[11].target=null;
 Actions["start-fc-mission"]=function(btn){
@@ -1828,7 +1829,7 @@ Actions["start-fc-mission"]=function(btn){
  if(!m||!fcUnlocked(i))return;
  if(i===11){
   if(!fcUnlocked(11)){toast("Complete the previous missions before the final pitch.","info","lock");return;}
-  S.fcActiveMission=null;S.started=true;save();App.go({name:"final"});return;
+  S.fcActiveMission=null;S.started=true;S.unlocked=Math.max(S.unlocked,5);save();App.go({name:"final"});return;
  }
  if(m.target){
   S.fcActiveMission=i;S.started=true;save();
@@ -1841,7 +1842,7 @@ Actions["start-fc-mission"]=function(btn){
    start++;
   }
   if(start>=LESSONS[chapter].steps.length){S.fcActiveMission=null;save();toast("The required source tasks are already complete.","gold","check");App.go({name:"missions"});return;}
-  S.stepPos[chapter]=Math.max(S.stepPos[chapter],start);save();App.go({name:"step",l:chapter,s:start});
+  S.stepPos[chapter]=start;save();App.go({name:"step",l:chapter,s:start});
  }
 };
 
