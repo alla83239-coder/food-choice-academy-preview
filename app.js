@@ -749,7 +749,7 @@ $("#copyPrompt",el).addEventListener("click",async()=>{try{await navigator.clipb
 }
 
 function renderStandaloneSkillsTestV14(el){
-el.innerHTML='<div class="photo-hero" style="min-height:220px">'+imgHTML("grammar","Unit 3 skills assessment","","target",false)+'<div class="veil"></div><div class="ph-content"><div class="kicker">Summative assessment • Unit 3</div><h1>Final Skills Test</h1><p style="max-width:700px;color:#D9E4DC">Complete the assessment independently. Choose Form A or Form B. Feedback points to evidence and language support without revealing answer keys.</p></div></div><div class="skills-test-shell"><div class="skills-test-guide card"><b>Before you begin</b><ul><li>Complete all five sections in the selected form.</li><li>Use the supplied audio for Listening.</li><li>Read the task passage before answering Reading.</li><li>Writing is saved with a self-assessment rubric.</li></ul><p class="muted small">Your work is saved as you go.</p></div><div class="card" id="a-skills"></div></div>';
+el.innerHTML='<div class="photo-hero" style="min-height:220px">'+imgHTML("grammar","Unit 3 skills assessment","","target",false)+'<div class="veil"></div><div class="ph-content"><div class="kicker">Summative assessment • Unit 3</div><h1>Final Skills Test</h1><p style="max-width:700px;color:#D9E4DC">Complete the assessment independently. Use the single assessment version. Feedback points to evidence and language support without revealing answer keys.</p></div></div><div class="skills-test-shell"><div class="skills-test-guide card"><b>Before you begin</b><ul><li>Complete all five sections in the selected form.</li><li>Use the supplied audio for Listening.</li><li>Read the task passage before answering Reading.</li><li>Writing is saved with a self-assessment rubric.</li></ul><p class="muted small">Your work is saved as you go.</p></div><div class="card" id="a-skills"></div></div>';
 renderSkillsTestPanelV13(el);
 }
 function renderTeacherNotes(el){el.innerHTML='';}
@@ -1087,6 +1087,24 @@ var restart=e.target.closest("[data-st-restart]");if(restart){delete S.results[s
 var choice=e.target.closest("[data-st-choice]");if(choice){checkSkillPartV13(el,part,e,choice.dataset.stChoice);return;}
 var check=e.target.closest("[data-st-check]");if(check){checkSkillPartV13(el,check.dataset.stCheck,e,null);return;}
 });
+}
+function checkSkillPartV13(el,part,event,value){
+var form="A",cfg=SKILLS3_V13.A[part],root=$("#a-skills",el),id=skillResultsKeyV13(form,part),feedback=$("[data-st-feedback]",root),saved=S.skillAnswers.A[part]||(S.skillAnswers.A[part]={});
+if(cfg.kind==="writing"){
+var draft=$("[data-st-draft]",root).value.trim(),ratings=[].slice.call(root.querySelectorAll("[data-st-rubric]"));
+if(!draft){feedback.textContent="Write a draft first.";return;}
+if(ratings.some(function(x){return x.value==="";})){feedback.textContent="Rate all five criteria before saving.";return;}
+var score=ratings.reduce(function(n,x){return n+Number(x.value);},0),old=S.results[id],rec={score:score,max:15,errors:0,done:true,selfAssessment:true,bestScore:Math.max(old&&old.bestScore||0,score),attempts:(old&&old.attempts||0)+1};
+S.results[id]=rec;S.logs[id]=[{q:"Writing self-assessment",user:"Draft saved; rubric "+score+"/15",ok:true}];save();renderSkillsTestPanelV13(el);return;
+}
+var idx=(S.skillIndexByPart&&S.skillIndexByPart[part])||0,total=cfg.kind==="dialogue"?cfg.correct.length:cfg.items.length,expected=cfg.correct[idx],ok=value===expected;
+if(!value)return;
+if(!S.skillRun)S.skillRun={};
+var run=S.skillRun[part]||(S.skillRun[part]={score:0,errors:0,log:[]});
+if(!ok){run.errors++;noteAnswer(false,event);feedback.textContent=skillHintV13(form,part,idx)+" Try another option.";root.querySelectorAll("[data-st-choice]").forEach(function(x){if(x.dataset.stChoice===value)x.disabled=true;});save();return;}
+run.score++;run.log.push({q:cfg.kind==="dialogue"?"Dialogue gap "+(idx+1):cfg.kind==="tf"?cfg.items[idx]:cfg.items[idx][0],user:value,ok:true,focus:skillHintV13(form,part,idx)});saved[idx]=value;noteAnswer(true,event,10);addXP(10);S.skillIndexByPart[part]=idx+1;
+if(idx+1>=total){var old=S.results[id],best=Math.max(old&&old.bestScore||0,run.score);S.results[id]={score:run.score,max:total,errors:run.errors,done:true,bestScore:best,attempts:(old&&old.attempts||0)+1,xp:run.score*10};S.logs[id]=run.log;delete S.skillRun[part];}
+save();renderSkillsTestPanelV13(el);
 }
 const renderActivitiesBaseV13=renderActivities;
 renderActivities=function(el){renderActivitiesBaseV13(el);};
