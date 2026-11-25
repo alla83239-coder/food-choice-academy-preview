@@ -76,3 +76,5 @@ App.go=function(route){
  createPhone();updatePhone();updateMissionProgress();return result;
 };
 createPhone();if(S.route&&S.route.name==="start"&&!S.name){document.body.classList.add("no-bar");document.querySelector("#topbar").classList.remove("on");}
+
+})();
