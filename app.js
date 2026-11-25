@@ -214,11 +214,24 @@ R.addEventListener("click",e=>{const b=e.target.closest(".mdef");if(!b||b.classL
 if(+b.dataset.i===sel){done++;earned+=10;noteAnswer(true,e,10);lt.classList.remove("sel");lt.classList.add("done");b.classList.add("done");lt.insertAdjacentHTML("afterbegin",`<span class="mnum">${done}</span>`);b.insertAdjacentHTML("afterbegin",`<span class="mnum">${done}</span>`);log.push({q:pairs[sel].t,user:pairs[sel].d,correct:pairs[sel].d,ok:true});sel=null;scoreLine(zone,done,pairs.length,err);
 if(done===pairs.length){if(cfg.speedAch&&(Date.now()-t0)/1000<60)earnAch("speed");completeTask(cfg.id,{score:done,max:pairs.length,errors:err,xp:earned+(err===0?20:10),log},zone);}}
 else{err++;noteAnswer(false,e);b.classList.add("shake");lt.classList.add("shake");log.push({q:pairs[sel].t,user:pairs[+b.dataset.i].d,correct:pairs[sel].d,ok:false});setTimeout(()=>{b.classList.remove("shake");lt.classList.remove("shake");},450);scoreLine(zone,done,pairs.length,err);}});}
-function engMCQ(zone,cfg){const items=cfg.items.map(it=>({...it,shuffled:shuffle(it.opts.map((o,i)=>({o,ok:i===it.ans})))}));let answered=0,score=0,err=0,earned=0,log=[];
-zone.innerHTML=items.map((it,qi)=>`<div class="qcard" data-q="${qi}"><div class="qtext"><span class="qnum">${qi+1}.</span>${it.q}</div><div class="opts">${it.shuffled.map((o,oi)=>`<button class="opt" data-o="${oi}"><span class="letter">${"ABCDE"[oi]}</span><span>${o.o}</span></button>`).join("")}</div></div>`).join("");scoreLine(zone,0,items.length,0);
-zone.addEventListener("click",e=>{const b=e.target.closest(".opt");if(!b)return;const card=b.closest(".qcard");if(card.dataset.done)return;card.dataset.done="1";const qi=+card.dataset.q,it=items[qi],oi=+b.dataset.o,ch=it.shuffled[oi];$$(".opt",card).forEach(o=>{o.disabled=true;if(+o.dataset.o!==oi)o.classList.add("dim");});answered++;
-if(ch.ok){score++;earned+=10;b.classList.add("right");$(".letter",b).innerHTML=icon("check");noteAnswer(true,e,10);}else{err++;b.classList.add("wrong");$(".letter",b).innerHTML=icon("x");noteAnswer(false,e);}
-log.push({q:it.q,user:ch.o,correct:it.opts[it.ans],ok:ch.ok,expl:it.expl});scoreLine(zone,answered,items.length,err);if(answered===items.length)completeTask(cfg.id,{score,max:items.length,errors:err,xp:earned+(err===0?15:0),log},zone);});}
+function engMCQ(zone,cfg){
+ const items=cfg.items.map(it=>({...it,shuffled:shuffle(it.opts.map((o,i)=>({o,ok:i===it.ans})))}));
+ let i=0,score=0,err=0,earned=0,log=[];
+ function show(){
+  if(i>=items.length){completeTask(cfg.id,{score,max:items.length,errors:err,xp:earned+(err===0?15:0),log},zone);return;}
+  const it=items[i];
+  zone.innerHTML='<div class="progress-line"><i style="width:'+(i/items.length*100)+'%"></i></div><div class="qcard"><div class="small muted">QUESTION '+(i+1)+' / '+items.length+'</div><div class="qtext">'+it.q+'</div><div class="fca-option-grid" id="mcqOptions">'+it.shuffled.map((o,oi)=>'<button class="opt" data-o="'+oi+'">'+esc(o.o)+'</button>').join("")+'</div><div class="fad-feedback" id="mcqFeedback" aria-live="polite"></div><div class="footer-bar"><span class="small muted">'+i+' / '+items.length+' completed</span><button class="btn btn-gold" id="mcqNext" disabled>Continue '+icon("right")+'</button></div></div>';
+  let locked=false;
+  $("#mcqOptions",zone).addEventListener("click",e=>{
+   const btn=e.target.closest(".opt");if(!btn||locked||btn.disabled)return;
+   const choice=it.shuffled[+btn.dataset.o];
+   if(choice.ok){locked=true;score++;earned+=10;btn.classList.add("right");$("#mcqOptions",zone).querySelectorAll("button").forEach(x=>x.disabled=true);$("#mcqFeedback",zone).textContent="Correct. Continue to the next question.";noteAnswer(true,e,10);log.push({q:it.q,user:choice.o,ok:true,expl:it.expl});$("#mcqNext",zone).disabled=false;}
+   else{err++;btn.disabled=true;btn.classList.add("wrong");$("#mcqFeedback",zone).textContent="Not quite. "+(it.expl||"Review the relevant rule or text and try again.");noteAnswer(false,e);log.push({q:it.q,user:choice.o,ok:false,focus:it.expl||"Review the source."});}
+  });
+  $("#mcqNext",zone).addEventListener("click",()=>{if(locked){i++;show();}});
+ }
+ show();
+}
 function engFadQuiz(zone,cfg){
  const items=cfg.items.map(it=>({...it,shuffled:shuffle(it.opts.map((o,i)=>({o,ok:i===it.ans})))}));
  let answered=0,score=0,err=0,earned=0,log=[];
