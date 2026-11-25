@@ -10,8 +10,12 @@ function updateMissionProgress(){
  if(route.name!=="step"||!Number.isInteger(S.fcActiveMission))return;
  const index=S.fcActiveMission,m=FOOD_CHOICE_MISSIONS[index];if(!m)return;
  const st=LESSONS[route.l]?.steps[route.s],task=st&&st.task,req=m.requires||[];
- const done=req.filter(id=>!!S.results[id]).length,total=req.length+(m.decision?1:0);
- const pos=req.indexOf(task),current=pos>=0?pos+1:Math.min(total,done+1),pct=total?done/total*100:0;
+ const taskDone=req.filter(id=>!!S.results[id]).length;
+ const decisionDone=!!(m.decision&&S.decisions[m.decision]);
+ const done=taskDone+(m.decision&&decisionDone?1:0),total=req.length+(m.decision?1:0);
+ const pos=req.indexOf(task),decisionPos=!!(st&&st.decision&&st.decision===m.decision);
+ const current=pos>=0?pos+1:decisionPos?req.length+1:Math.min(total,done+1);
+ const pct=total?Math.min(100,done/total*100):0;
  const bar=document.createElement("section");bar.className="fca-mission-progress";
  bar.innerHTML='<div class="fca-mission-progress-head"><span>MISSION '+String(index+1).padStart(2,"0")+' · '+esc(m.title)+'</span><b>TASK '+current+' / '+total+'</b></div><div class="fca-mission-progress-track"><i style="width:'+pct+'%"></i></div>';
  screen.insertBefore(bar,screen.firstChild);
