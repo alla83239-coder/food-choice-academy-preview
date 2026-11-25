@@ -687,44 +687,63 @@ function buildCarbonFootprint(zone){
 
 
 function buildVendingAssortment(zone){
+ const machines=[
+  {id:"ambient",name:"Ambient snack machine",slots:30,storage:"Ambient products only",mode:"ambient",price:260000,detail:"Lower purchase cost; suitable for packaged snacks and drinks that do not require chilling."},
+  {id:"chilled",name:"Refrigerated vending machine",slots:24,storage:"Chilled and suitable packaged items",mode:"chilled",price:450000,detail:"Supports chilled milk, yoghurt and sandwiches; requires temperature monitoring and reliable power."},
+  {id:"combo",name:"Combination vending machine",slots:36,storage:"Separate chilled and ambient zones",mode:"combo",price:620000,detail:"Wider range with separate storage zones; higher initial investment and more maintenance."}
+ ];
  const products=[
-  {id:"apple",name:"Fresh apple",group:"Fruit",price:0.7,storage:"Ambient",allergens:"None",healthy:true,protein:false},
-  {id:"banana",name:"Banana",group:"Fruit",price:0.7,storage:"Ambient",allergens:"None",healthy:true,protein:false},
-  {id:"water",name:"Still water",group:"Drink",price:0.8,storage:"Ambient",allergens:"None",healthy:true,protein:false},
-  {id:"milk",name:"Plain milk",group:"Drink / dairy",price:0.9,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
-  {id:"yoghurt",name:"Plain yoghurt with berries",group:"Dairy snack",price:1.2,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
-  {id:"chicken",name:"Wholegrain chicken sandwich",group:"Meal",price:2.8,storage:"Chilled",allergens:"Gluten; check recipe for egg or milk",healthy:true,protein:true},
-  {id:"hummus",name:"Hummus and vegetable wrap",group:"Meal",price:2.4,storage:"Chilled",allergens:"Gluten; sesame",healthy:true,protein:true},
-  {id:"nuts",name:"Unsalted mixed nuts",group:"Protein snack",price:1.0,storage:"Ambient; sealed pack",allergens:"Peanuts / tree nuts",healthy:true,protein:true},
-  {id:"oatbar",name:"Oat bar · lower added sugar",group:"Wholegrain snack",price:0.9,storage:"Ambient",allergens:"Gluten; check recipe for nuts",healthy:true,protein:false},
-  {id:"cheese",name:"Cheese and oatcakes",group:"Snack",price:1.1,storage:"Chilled",allergens:"Milk; gluten",healthy:true,protein:true},
-  {id:"juice",name:"Orange juice carton",group:"Drink",price:1.3,storage:"Ambient unopened; chill after opening",allergens:"None",healthy:false,protein:false},
-  {id:"cola",name:"Cola can",group:"Drink",price:1.2,storage:"Ambient",allergens:"None",healthy:false,protein:false},
-  {id:"candy",name:"Sweets",group:"Confectionery",price:0.9,storage:"Ambient",allergens:"Check label",healthy:false,protein:false}
+  {id:"apple",name:"Fresh apple",group:"Fruit",price:55,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"banana",name:"Banana",group:"Fruit",price:70,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"water",name:"Still water",group:"Drink",price:60,storage:"Ambient",allergens:"None",healthy:true,protein:false},
+  {id:"milk",name:"Plain milk",group:"Drink / dairy",price:90,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
+  {id:"yoghurt",name:"Plain yoghurt with berries",group:"Dairy snack",price:120,storage:"Chilled",allergens:"Milk",healthy:true,protein:true},
+  {id:"chicken",name:"Wholegrain chicken sandwich",group:"Meal",price:250,storage:"Chilled",allergens:"Gluten; check recipe for egg or milk",healthy:true,protein:true},
+  {id:"hummus",name:"Hummus and vegetable wrap",group:"Meal",price:220,storage:"Chilled",allergens:"Gluten; sesame",healthy:true,protein:true},
+  {id:"nuts",name:"Unsalted mixed nuts",group:"Protein snack",price:130,storage:"Ambient; sealed pack",allergens:"Peanuts / tree nuts",healthy:true,protein:true},
+  {id:"oatbar",name:"Oat bar · lower added sugar",group:"Wholegrain snack",price:110,storage:"Ambient",allergens:"Gluten; check recipe for nuts",healthy:true,protein:false},
+  {id:"cheese",name:"Cheese and oatcakes",group:"Snack",price:150,storage:"Chilled",allergens:"Milk; gluten",healthy:true,protein:true},
+  {id:"juice",name:"Orange juice carton",group:"Drink",price:110,storage:"Ambient unopened; chill after opening",allergens:"None",healthy:false,protein:false},
+  {id:"cola",name:"Cola can",group:"Drink",price:100,storage:"Ambient",allergens:"None",healthy:false,protein:false},
+  {id:"candy",name:"Sweets",group:"Confectionery",price:70,storage:"Ambient",allergens:"Check label",healthy:false,protein:false}
  ];
  const selected=new Set(S.vendingStock&&S.vendingStock.ids||["apple","water","yoghurt","chicken","hummus","nuts","oatbar"]);
- zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Vending Machine Procurement</b><p>Select the products your school will offer. Consider student needs, storage, allergens, shelf life, price and a balanced range.</p></div></div>'+
- '<div class="gnote"><span>'+icon("info")+'</span><span>Prices are illustrative planning estimates in GBP, not supplier quotations. Verify product labels, allergen declarations, chilled-chain requirements and local school food policy before purchasing.</span></div>'+
- '<div class="card"><div class="small muted" style="margin-bottom:10px">Choose 6–8 products. The assortment should include water, fruit, a useful protein option and a more substantial meal or snack.</div><div id="vendingProductGrid" class="fca-option-grid">'+products.map(function(p){return '<button type="button" class="opt vending-product'+(selected.has(p.id)?' right':'')+'" data-id="'+p.id+'"><b>'+p.name+'</b><small class="muted">'+p.group+' · £'+p.price.toFixed(2)+'</small><small class="muted">Storage: '+p.storage+'</small><small class="muted">Allergens: '+p.allergens+'</small><small>'+(p.healthy?'Suitable everyday choice':'Occasional / limit')+'</small></button>';}).join("")+'</div></div>'+
- '<div class="card soft"><h3>Assortment check</h3><div id="vendingChecks"></div><p class="small muted" id="vendingCount"></p></div>'+
- '<div class="footer-bar"><span class="small muted" id="vendingFeedback">Choose 6–8 items.</span><button type="button" class="btn btn-gold" id="vendingSave" disabled>Save vending assortment '+icon("check")+'</button></div>';
+ let machineChoice=S.vendingStock&&S.vendingStock.machine?S.vendingStock.machine.id:"combo";
+ zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Vending Machine Procurement</b><p>Choose the machine first, then create a product range that fits its storage conditions and the needs of students aged 15–18.</p></div></div>'+
+ '<div class="gnote"><span>'+icon("info")+'</span><span>All machine prices and retail prices below are fictional classroom estimates in RUB, not real supplier quotations. Replace them with written quotations before making a purchase decision.</span></div>'+
+ '<div class="card"><h3>1. Select the vending machine to purchase</h3><div class="fca-option-grid" id="vendingMachineGrid">'+machines.map(function(m){return '<button type="button" class="opt vending-machine-choice'+(machineChoice===m.id?' right':'')+'" data-id="'+m.id+'"><b>'+m.name+'</b><small class="muted">'+m.slots+' selections · '+m.storage+'</small><strong>₽'+m.price.toLocaleString("ru-RU")+'</strong><small class="muted">'+m.detail+'</small></button>';}).join("")+'</div></div>'+
+ '<div class="card"><div class="small muted" style="margin-bottom:10px">2. Choose 6–8 products. Include water, fruit, a protein option and a substantial meal or snack.</div><div id="vendingProductGrid" class="fca-option-grid">'+products.map(function(p){return '<button type="button" class="opt vending-product'+(selected.has(p.id)?' right':'')+'" data-id="'+p.id+'"><b>'+p.name+'</b><small class="muted">'+p.group+' · ₽'+p.price.toLocaleString("ru-RU")+'</small><small class="muted">Storage: '+p.storage+'</small><small class="muted">Allergens: '+p.allergens+'</small><small>'+(p.healthy?'Suitable everyday choice':'Occasional / limit')+'</small></button>';}).join("")+'</div></div>'+
+ '<div class="card soft"><h3>3. Assortment and compliance check</h3><label class="launch-milestone"><input type="checkbox" id="vendingComplianceReviewed" '+(S.vendingStock&&S.vendingStock.complianceReviewed?'checked':'')+'><span><b>I reviewed storage, allergens and shelf-life requirements</b><small>Check actual product labels and the machine specification before approving the assortment.</small></span></label><div id="vendingChecks"></div><p class="small muted" id="vendingCount"></p></div>'+
+ '<div class="footer-bar"><span class="small muted" id="vendingFeedback">Choose the machine and 6–8 products.</span><button type="button" class="btn btn-gold" id="vendingSave" disabled>Save machine and assortment '+icon("check")+'</button></div>';
  function evaluate(){
   const chosen=products.filter(function(p){return selected.has(p.id);});
+  const machine=machines.find(function(m){return m.id===machineChoice;});
+  const hasChilled=chosen.some(function(p){return p.storage==="Chilled";});
+  const compatibility=!!machine&&(machine.mode!=="ambient"||!hasChilled);
+  const reviewed=$("#vendingComplianceReviewed",zone).checked;
   const checks=[
+   {label:"A vending machine has been selected",ok:!!machine},
+   {label:"Machine storage supports all selected products",ok:compatibility},
    {label:"6–8 products selected",ok:chosen.length>=6&&chosen.length<=8},
    {label:"Still water is included",ok:selected.has("water")},
    {label:"At least one fresh fruit option is included",ok:selected.has("apple")||selected.has("banana")},
    {label:"At least one useful protein option is included",ok:chosen.some(function(p){return p.protein;})},
    {label:"A substantial meal or wholegrain snack is included",ok:selected.has("chicken")||selected.has("hummus")||selected.has("oatbar")||selected.has("cheese")},
-   {label:"Allergen and storage information has been reviewed",ok:true}
+   {label:"Storage, allergens and shelf life have been reviewed",ok:reviewed}
   ];
   $("#vendingChecks",zone).innerHTML=checks.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'x')+' '+c.label+'</div>';}).join("");
-  $("#vendingCount",zone).textContent=chosen.length+" products · illustrative selling-price total £"+chosen.reduce(function(n,p){return n+p.price;},0).toFixed(2)+" (one pack/unit of each)";
+  $("#vendingCount",zone).textContent=chosen.length+" products · simulated retail value ₽"+chosen.reduce(function(n,p){return n+p.price;},0).toLocaleString("ru-RU")+" for one unit of each";
   const ok=checks.every(function(c){return c.ok;});
   $("#vendingSave",zone).disabled=!ok;
-  $("#vendingFeedback",zone).textContent=ok?"Assortment meets the planning checks.":"Review the missing requirements before saving.";
-  return {chosen:chosen,checks:checks,score:checks.filter(function(c){return c.ok;}).length};
+  $("#vendingFeedback",zone).textContent=ok?"Machine and assortment meet the project checks.":"Review the missing requirements before saving.";
+  return {chosen:chosen,machine:machine,checks:checks,score:checks.filter(function(c){return c.ok;}).length,complianceReviewed:reviewed};
  }
+ $("#vendingMachineGrid",zone).addEventListener("click",function(e){
+  const btn=e.target.closest(".vending-machine-choice");if(!btn)return;
+  machineChoice=btn.dataset.id;
+  $$(".vending-machine-choice",zone).forEach(function(x){x.classList.toggle("right",x===btn);});
+  evaluate();
+ });
  zone.addEventListener("click",function(e){
   const btn=e.target.closest(".vending-product");if(!btn)return;
   const id=btn.dataset.id;
@@ -732,13 +751,14 @@ function buildVendingAssortment(zone){
   else{selected.add(id);btn.classList.add("right");}
   evaluate();
  });
+ zone.addEventListener("change",function(e){if(e.target.matches("#vendingComplianceReviewed"))evaluate();});
  $("#vendingSave",zone).addEventListener("click",function(e){
   const result=evaluate();if($("#vendingSave",zone).disabled)return;
-  S.vendingStock={ids:result.chosen.map(function(p){return p.id;}),products:result.chosen.map(function(p){return {id:p.id,name:p.name,group:p.group,price:p.price,storage:p.storage,allergens:p.allergens};}),score:result.score,max:result.checks.length,createdAt:Date.now()};
-  save();noteAnswer(true,e,40);
-  completeTask("3c-vending-stock",{score:result.score,max:result.checks.length,errors:0,xp:40,log:result.checks.map(function(c){return {q:c.label,user:c.ok?"met":"not met",correct:"met",ok:c.ok};})},zone);
+  S.vendingStock={ids:result.chosen.map(function(p){return p.id;}),products:result.chosen.map(function(p){return {id:p.id,name:p.name,group:p.group,price:p.price,currency:"RUB",storage:p.storage,allergens:p.allergens};}),machine:result.machine,complianceReviewed:result.complianceReviewed,score:result.score,max:result.checks.length,createdAt:Date.now()};
+  save();noteAnswer(true,e,50);
+  completeTask("3c-vending-stock",{score:result.score,max:result.checks.length,errors:0,xp:50,log:result.checks.map(function(c){return {q:c.label,user:c.ok?"met":"not met",correct:"met",ok:c.ok};})},zone);
   const done=document.createElement("div");done.className="outcome";
-  done.innerHTML='<span class="tag">'+icon("check")+' Assortment saved</span><h3>'+result.chosen.length+' vending products selected</h3><p>'+result.chosen.map(function(p){return esc(p.name);}).join(" · ")+'</p><p>Next: confirm wholesale supplier, pack size, expiry rules, retail margin and restocking frequency.</p>';
+  done.innerHTML='<span class="tag">'+icon("check")+' Machine and assortment saved</span><h3>'+esc(result.machine.name)+' · ₽'+result.machine.price.toLocaleString("ru-RU")+'</h3><p>'+result.chosen.map(function(p){return esc(p.name);}).join(" · ")+'</p><p>Next: confirm the supplier quotation, warranty, installation, payment system, maintenance and energy use.</p>';
   zone.insertBefore(done,zone.firstChild);
  });
  evaluate();
