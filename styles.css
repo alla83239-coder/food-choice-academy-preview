@@ -889,3 +889,30 @@ body.no-bar #app{padding:0;max-width:none}
 .gs-reflection-grid .qcard label{display:block;margin:10px 0;font-size:13px;font-weight:700}
 .gs-reflection-grid textarea{display:block;width:100%;margin-top:6px}
 @media(max-width:720px){.gs-reflection-grid{grid-template-columns:1fr}}
+
+
+/* Teacher preview and mission refinements · 25 Nov 2026 */
+.fca-preview-banner{position:sticky;top:0;z-index:1200;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 14px;background:#0B2A21;color:#FFFDF8;border-bottom:1px solid #C8A24B;font-size:11px;letter-spacing:.04em}
+.fca-preview-banner b{color:#E9CE7E;font-weight:900}
+.fca-preview-banner span{opacity:.9}
+.fca-audio-panel{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:0 0 14px;padding:14px 18px;background:#FFFDF8;border:1px solid var(--goldLine);border-radius:16px;box-shadow:0 8px 22px rgba(29,42,35,.06)}
+.fca-audio-panel>div{display:grid;gap:5px;min-width:210px}
+.fca-audio-panel audio{width:min(420px,52%);min-width:260px}
+.fca-mission-guide p{font-size:14px;line-height:1.55;margin:4px 0 0}
+.fca-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.fca-option-grid .chip{width:100%;white-space:normal;min-height:42px;line-height:1.35;justify-content:center;padding:10px 12px}
+.shop-item>b{display:block;font-size:15px;line-height:1.4;margin:7px 0}
+.shop-item .price{font-size:15px;font-weight:800}
+.shop-item .shop-tags{margin:8px 0}
+.shop-layout .trolley{font-size:14px}
+.potato-chat{display:grid;gap:14px;margin:14px 0}
+.potato-chat-head{display:flex;align-items:center;gap:12px}
+.potato-chat-head>div{display:grid;gap:3px}
+.potato-chat-bubble{max-width:760px;padding:14px 18px;background:#F6F1E6;border:1px solid var(--goldLine);border-radius:16px 16px 16px 4px}
+.potato-chat-bubble p{margin:5px 0 0;line-height:1.55;font-size:14px}
+.potato-suggestion-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.potato-suggestion{display:grid;gap:7px;padding:8px;background:#FFFDF8;border:1px solid var(--goldLine);border-radius:13px;color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+.potato-suggestion img{width:100%;height:100px;object-fit:cover;border-radius:9px}
+.potato-suggestion.selected{border-color:var(--emerald);background:var(--mint);box-shadow:0 0 0 2px rgba(28,107,79,.12)}
+#potatoIdeas{width:100%;min-height:86px;font:inherit;border:1px solid var(--goldLine);border-radius:12px;padding:12px}
+@media(max-width:720px){.fca-audio-panel{display:grid}.fca-audio-panel audio{width:100%;min-width:0}.potato-suggestion-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fca-option-grid{grid-template-columns:1fr}}
