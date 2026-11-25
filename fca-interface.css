@@ -1,0 +1,100 @@
+/* Desktop workspace: persistent left navigation */
+#topbar.on{position:fixed!important;inset:0 auto 0 0!important;width:248px!important;height:100vh!important;min-height:100vh!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:18px!important;padding:20px 14px!important;border:0!important;border-right:1px solid rgba(200,162,75,.5)!important;overflow-y:auto!important;background:rgba(11,42,33,.98)!important}
+#topbar .logo{justify-content:flex-start!important;white-space:normal!important;padding:5px 7px 14px!important;border-bottom:1px solid rgba(233,206,126,.22)!important}
+#topbar .logo .logo-text{display:block!important;white-space:normal!important;line-height:1.4}
+#topbar .logo small{letter-spacing:1.1px!important;line-height:1.4;margin-top:3px}
+#topbar .mainnav{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;margin:0!important;gap:5px!important;overflow:visible!important}
+#topbar .nav-btn{width:100%!important;justify-content:flex-start!important;padding:11px 12px!important;border-radius:11px!important}
+#topbar .nav-btn span{display:inline!important}
+#topbar .nav-btn .ic{width:18px!important;height:18px!important}
+#topbar .tb-right{width:100%!important;margin:auto 0 0!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;padding-top:14px;border-top:1px solid rgba(233,206,126,.22)}
+#topbar .sound-btn,#topbar .err-pill,#topbar .xp-pill{justify-content:center!important;width:100%!important}
+#app{width:calc(100% - 248px)!important;max-width:none!important;margin:0 0 0 248px!important;padding:26px clamp(18px,3vw,42px) 90px!important}
+body.no-bar #topbar{display:none!important}
+body.no-bar #app{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+#app p,#app li,.reading p,.qtext,.fad-passage-copy p,.fca-guide-card p{text-align:justify;text-justify:inter-word;hyphens:auto;line-height:1.68}
+#app h1,#app h2,#app h3,#app h4,#app button,#app label,#app th,#app td{hyphens:none}
+.fca-mission-progress{margin:0 0 18px;padding:13px 16px;background:#fffdf8;border:1px solid var(--goldLine);border-radius:14px;box-shadow:0 5px 18px rgba(25,45,34,.06)}
+.fca-mission-progress-head,.fca-question-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:10px;font-weight:900;letter-spacing:.08em;color:var(--gold3);margin-bottom:8px}
+.fca-mission-progress-head b{color:var(--forest)}
+.fca-mission-progress-track{height:7px;background:#eee7d7;border-radius:99px;overflow:hidden}
+.fca-mission-progress-track i{display:block;height:100%;background:var(--gradGold);border-radius:99px;transition:width .25s}
+.fca-question-meta{margin:0 0 10px}
+.fca-question-progress{margin:0 0 14px}
+.fca-one-question .qtext{font-size:17px;font-weight:750;line-height:1.55;margin:4px 0 18px}
+.fca-question-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fca-answer-option{min-height:54px;text-align:left!important;white-space:normal!important;line-height:1.45!important;padding:13px 15px!important}
+.fca-question-footer{margin-top:18px}
+.fca-reading-pages .fca-reading-page[hidden]{display:none!important}
+.fca-reading-pages .fca-reading-page{animation:screenIn .22s ease}
+.fca-reading-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:15px;margin-top:12px;border-top:1px solid var(--line)}
+.fca-reading-count{font-size:11px;font-weight:900;letter-spacing:.1em;color:var(--gold3)}
+.fca-trio-columns{display:grid;grid-template-columns:.8fr 1.2fr 1.2fr;gap:14px}
+.fca-trio-columns .tri-column{min-width:0}
+.fca-trio-columns .tri-item{width:100%;text-align:left;white-space:normal;line-height:1.45;margin:4px 0;padding:11px 12px}
+.tri-target-word{padding:16px 12px;border:1px solid var(--goldLine);background:#f8f2e4;border-radius:13px;font-size:20px;font-weight:900;color:var(--forest);text-align:center}
+.fca-student-guide{max-width:1120px;margin:0 auto}
+.fca-guide-hero{min-height:215px;border-radius:22px;overflow:hidden;background:linear-gradient(120deg,#0b2a21,#1c6b4f)}
+.fca-guide-intro{margin:20px 0;padding:22px;background:#fffdf8;border:1px solid var(--goldLine);border-radius:16px}
+.fca-guide-intro h2{margin:9px 0}
+.fca-guide-intro p{margin:0;color:var(--muted)}
+.fca-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fca-guide-card{display:grid;grid-template-columns:44px 1fr;gap:13px;padding:17px;background:#fffdf8;border:1px solid var(--line);border-radius:15px}
+.fca-guide-card>span{display:grid;place-items:center;width:40px;height:40px;background:var(--goldSoft);border:1px solid var(--goldLine);border-radius:12px;color:var(--gold3);font-weight:900}
+.fca-guide-card h3{font-size:14px;margin:1px 0 7px}
+.fca-guide-card p{font-size:12.5px;color:var(--muted);margin:0}
+.fca-guide-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0}
+.fca-start-guide{margin-left:8px}
+.fca-phone-dock{position:fixed;right:18px;bottom:18px;z-index:220;width:294px}
+.fca-phone-dock[hidden]{display:none!important}
+.fca-phone-shell{padding:8px;border:2px solid #9a7426;border-radius:28px;background:linear-gradient(145deg,#303831,#0d1d18);box-shadow:0 16px 40px rgba(10,25,18,.3)}
+.fca-phone-speaker{width:54px;height:4px;background:#6c766e;border-radius:99px;margin:2px auto 7px}
+.fca-phone-screen{overflow:hidden;background:#fffdf8;border-radius:19px;border:1px solid rgba(233,206,126,.55)}
+.fca-phone-top{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#0b2a21;color:#f7f0df;font-size:9px;font-weight:900;letter-spacing:.14em}
+.fca-phone-top button{width:25px;height:25px;border-radius:50%;background:var(--gradGold);color:#0b2a21;font-size:18px;font-weight:900}
+.fca-phone-mini{padding:13px;text-align:center}
+.fca-phone-mini b{font-weight:900;font-size:13px;color:var(--forest)}
+.fca-phone-faces{display:flex;justify-content:center;gap:9px;margin:9px 0}
+.fca-phone-faces img{border-radius:50%}
+.fca-phone-mini small{color:var(--muted);font-size:10px}
+.fca-phone-full{padding:12px;border-top:1px solid var(--goldLine)}
+.fca-phone-dock.is-collapsed{width:124px}
+.fca-phone-dock.is-collapsed .fca-phone-full{display:none}
+.fca-phone-dock.is-collapsed .fca-phone-mini{padding:9px}
+.fca-phone-dock.is-collapsed .fca-phone-mini b{font-size:11px}
+.fca-phone-dock.is-collapsed .fca-phone-faces{margin:6px 0}
+.fca-phone-dock.is-collapsed .fca-phone-mini small{font-size:8px}
+.fca-phone-current{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fca-phone-current b,.fca-phone-current small{display:block}
+.fca-phone-current b{font-size:13px;color:var(--forest)}
+.fca-phone-current small{font-size:10px;color:var(--muted)}
+.fca-phone-helper-list{display:flex;gap:5px;margin:10px 0}
+.fca-phone-helper{flex:1;padding:7px 5px;border:1px solid var(--goldLine);border-radius:9px;background:#fff;font-size:10px;font-weight:800}
+.fca-phone-helper.active{background:#0b2a21;color:#fff;border-color:#0b2a21}
+.fca-phone-message-label{font-size:9px;color:var(--gold3);font-weight:900;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.fca-phone-message{padding:11px;background:#f4efe3;border-radius:11px;font-size:11px;line-height:1.55;color:var(--ink);min-height:74px;text-align:left!important}
+.fca-phone-guide{width:100%;margin-top:10px;font-size:10px!important;padding:9px!important}
+@media(max-width:1000px){
+ #topbar.on{width:78px!important;padding:14px 8px!important;gap:14px!important}
+ #topbar .logo{justify-content:center!important;padding:4px 0 12px!important}
+ #topbar .logo .logo-text{display:none!important}
+ #topbar .nav-btn{justify-content:center!important;padding:11px 8px!important}
+ #topbar .nav-btn span{display:none!important}
+ #topbar .tb-right{align-items:center}
+ #topbar .err-pill span,#topbar .xp-pill .xptxt{display:none!important}
+ #topbar .err-pill,#topbar .xp-pill{padding:7px 5px!important}
+ #app{width:calc(100% - 78px)!important;margin-left:78px!important;padding:20px 16px 80px!important}
+ body.no-bar #app{width:100%!important;margin:0!important;padding:0!important}
+}
+@media(max-width:640px){
+ #topbar.on{width:62px!important;padding:10px 5px!important}
+ #topbar .logo .leaf-badge{width:34px;height:34px}
+ #topbar .nav-btn{padding:9px 5px!important}
+ #app{width:calc(100% - 62px)!important;margin-left:62px!important;padding:14px 10px 90px!important}
+ .fca-guide-grid{grid-template-columns:1fr}
+ .fca-trio-columns{grid-template-columns:1fr}
+ .fca-question-options{grid-template-columns:1fr}
+ .fca-phone-dock{right:8px;bottom:8px;width:min(286px,calc(100vw - 82px))}
+ .fca-phone-dock.is-collapsed{width:100px}
+}
+@media print{#topbar,#fcaPhoneDock{display:none!important}#app{width:100%!important;margin:0!important;padding:0!important}}

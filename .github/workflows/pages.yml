@@ -18,7 +18,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Check application JavaScript syntax
-        run: node --check app.js
+        run: |
+          node --check app.js
+          node --check fca-enhancements.js
+          node --check fca-interface.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
