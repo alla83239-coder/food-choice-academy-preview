@@ -842,3 +842,16 @@ body.no-bar #app{padding:0;max-width:none}
 .fca-comm-response textarea:focus{outline:2px solid #d2b66f;outline-offset:2px}
 @media(max-width:850px){.fca-comm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.fca-comm-grid{grid-template-columns:1fr}}
+
+/* Sequential quiz and image-led mission presentation */
+.fca-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.fca-option-grid .opt,.fca-option-grid .chip{min-height:46px;white-space:normal;text-align:left;line-height:1.35;padding:11px 14px}
+.fca-option-grid .opt.right{border-color:var(--ok);background:#edf7f1}
+.fca-option-grid .opt.wrong{border-color:var(--danger);background:#fbefef}
+.fca-mission-guide{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--goldLine);border-radius:16px;background:linear-gradient(110deg,#fffdf8,#f5eedf)}
+.fca-mission-guide p{margin:4px 0 0;font-size:16px;line-height:1.5;color:var(--muted)}
+.fca-activity-intro{display:flex;align-items:center;gap:14px;margin:12px 0 18px;padding:12px;border-radius:14px;background:#f7f1e5}
+.fca-activity-intro img{width:112px;height:82px;object-fit:cover;border-radius:10px}
+.fca-activity-intro p{margin:4px 0 0;font-size:16px;line-height:1.45}
+.preview-mode-note{display:inline-block;margin-top:12px;padding:8px 12px;border:1px solid rgba(233,206,126,.65);border-radius:10px;color:#f5e8c6;font-size:12px;font-weight:800;letter-spacing:.04em}
+@media(max-width:640px){.fca-option-grid{grid-template-columns:1fr}.fca-mission-guide{align-items:flex-start}.fca-activity-intro{align-items:flex-start}.fca-activity-intro img{width:88px;height:76px}}
