@@ -1199,7 +1199,7 @@ function fcPortfolioMarkup(){
   ["Starting hypothesis",S.missionHypothesis||"Not submitted yet"],
   ["Packaging decision",S.decisions.pack?.title||S.decisions.pack?.id||"Not decided"],
   ["Nutrition report",S.results["3b-plan"]?S.results["3b-plan"].score+"/2 recommendations":"Not completed"],
-  ["Fad Diets evidence review",S.results["3b-fad"]?S.results["3b-fad"].score+"/"+S.results["3b-fad"].max+" items checked":"Not completed"],
+  ["Fad Diets evidence review",(S.results["3b-fad"]?"Article check recorded · ":"")+(S.results["3b-fad-table"]?"comparison table saved · ":"")+(S.results["3b-fad-vocab"]?"8 terms and 8 sentences saved": "Vocabulary practice not completed")],
   ["Vending-machine decision",S.decisions.vend?.title||S.decisions.vend?.id||"Not decided"],
   ["Food survey",survey],
   ["Rice Lab",rice],
