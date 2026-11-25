@@ -622,7 +622,7 @@ function fcaBuildTrioAssessment(el){
   const defs=shuffle([target].concat(definitionDistractors));
   const translations=shuffle([target].concat(translationDistractors));
   const selected={def:null,ru:null};
-  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+((index+1)/pool.length*100)+'%'"></i></div>'+
+  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+((index+1)/pool.length*100)+'%"></i></div>'+
    '<div class="fca-question-meta"><span>TRIO '+(index+1)+' / '+pool.length+'</span><span>One attempt</span></div>'+
    '<div class="tri-columns fca-trio-columns"><div class="tri-column"><h3>Word</h3><div class="tri-target-word">'+esc(target.t)+'</div><small class="muted">Match this word.</small></div>'+
    '<div class="tri-column"><h3>English definition</h3>'+defs.map(function(x,i){return '<button type="button" class="tri-item" data-col="def" data-i="'+i+'">'+esc(x.en)+'</button>';}).join("")+'</div>'+
