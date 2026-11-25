@@ -219,7 +219,32 @@ zone.innerHTML=items.map((it,qi)=>`<div class="qcard" data-q="${qi}"><div class=
 zone.addEventListener("click",e=>{const b=e.target.closest(".opt");if(!b)return;const card=b.closest(".qcard");if(card.dataset.done)return;card.dataset.done="1";const qi=+card.dataset.q,it=items[qi],oi=+b.dataset.o,ch=it.shuffled[oi];$$(".opt",card).forEach(o=>{o.disabled=true;if(+o.dataset.o!==oi)o.classList.add("dim");});answered++;
 if(ch.ok){score++;earned+=10;b.classList.add("right");$(".letter",b).innerHTML=icon("check");noteAnswer(true,e,10);}else{err++;b.classList.add("wrong");$(".letter",b).innerHTML=icon("x");noteAnswer(false,e);}
 log.push({q:it.q,user:ch.o,correct:it.opts[it.ans],ok:ch.ok,expl:it.expl});scoreLine(zone,answered,items.length,err);if(answered===items.length)completeTask(cfg.id,{score,max:items.length,errors:err,xp:earned+(err===0?15:0),log},zone);});}
-function engFadQuiz(zone,cfg){const items=cfg.items.map(it=>({...it,shuffled:shuffle(it.opts.map((o,i)=>({o,ok:i===it.ans})))}));let answered=0,score=0,err=0,earned=0,log=[];zone.innerHTML=items.map((it,qi)=>`<div class="qcard" data-q="${qi}"><div class="qtext"><span class="qnum">${qi+1}.</span>${it.q}</div><div class="opts">${it.shuffled.map((o,oi)=>`<button class="opt" data-o="${oi}"><span class="letter">${"ABCDE"[oi]}</span><span>${o.o}</span></button>`).join("")}</div><div class="fad-feedback" aria-live="polite"></div></div>`).join("");scoreLine(zone,0,items.length,0);zone.addEventListener("click",e=>{const b=e.target.closest(".opt");if(!b)return;const card=b.closest(".qcard");if(card.dataset.done)return;card.dataset.done="1";const qi=+card.dataset.q,it=items[qi],ch=it.shuffled[+b.dataset.o];$$('.opt',card).forEach(o=>{o.disabled=true;if(o===b)o.classList.add(ch.ok?"right":"wrong");else o.classList.add("dim");});answered++;const fb=$('.fad-feedback',card);if(ch.ok){score++;earned+=10;fb.className='fad-feedback feedback-hint';fb.textContent='Correct. Keep the passage as your evidence.';noteAnswer(true,e,10);}else{err++;fb.className='fad-feedback feedback-hint';fb.textContent='Not quite. '+it.expl;noteAnswer(false,e);}log.push({q:it.q,user:ch.o,ok:ch.ok,expl:it.expl});scoreLine(zone,answered,items.length,err);if(answered===items.length)completeTask(cfg.id,{score,max:items.length,errors:err,xp:earned+(err===0?15:0),log},zone);});}
+function engFadQuiz(zone,cfg){
+ const items=cfg.items.map(it=>({...it,shuffled:shuffle(it.opts.map((o,i)=>({o,ok:i===it.ans})))}));
+ let answered=0,score=0,err=0,earned=0,log=[];
+ zone.innerHTML=items.map((it,qi)=>'<div class="qcard" data-q="'+qi+'"><div class="qtext"><span class="qnum">'+(qi+1)+'.</span>'+it.q+'</div><div class="opts">'+it.shuffled.map((o,oi)=>'<button class="opt" data-o="'+oi+'"><span class="letter">'+String.fromCharCode(65+oi)+'</span><span>'+o.o+'</span></button>').join("")+'</div><div class="fad-feedback" aria-live="polite"></div></div>').join("");
+ scoreLine(zone,0,items.length,0);
+ zone.addEventListener("click",e=>{
+  const b=e.target.closest(".opt");if(!b||b.disabled)return;
+  const card=b.closest(".qcard");if(card.dataset.done)return;
+  const qi=+card.dataset.q,it=items[qi],choice=it.shuffled[+b.dataset.o],fb=$(".fad-feedback",card);
+  if(choice.ok){
+   card.dataset.done="1";answered++;score++;earned+=10;
+   $$(".opt",card).forEach(o=>{o.disabled=true;if(o===b)o.classList.add("right");else o.classList.add("dim");});
+   fb.className="fad-feedback feedback-hint";fb.textContent="Correct. Keep the passage as your evidence.";
+   log.push({q:it.q,user:choice.o,ok:true,focus:"Keep the passage as evidence."});
+   noteAnswer(true,e,10);
+  }else{
+   err++;b.disabled=true;b.classList.add("wrong");
+   fb.className="fad-feedback feedback-hint";fb.textContent="Not quite. "+it.expl+" Re-read that part and try one of the remaining options.";
+   log.push({q:it.q,user:choice.o,ok:false,focus:it.expl});
+   noteAnswer(false,e);
+  }
+  scoreLine(zone,answered,items.length,err);
+  if(answered===items.length)completeTask(cfg.id,{score,max:items.length,errors:err,xp:earned+(err===0?15:0),log},zone);
+ });
+}
+
 function engGaps(zone,cfg){let answered=0,score=0,err=0,earned=0,log=[];zone.innerHTML=cfg.items.map((it,i)=>`<div class="qcard" data-q="${i}"><div class="gap-sentence">${it.pre}<span class="gap" id="gap-${cfg.id}-${i}">…</span>${it.post||""}</div><div class="chiprow">${shuffle(it.opts).map(o=>`<button class="chip" data-v="${esc(o)}">${o}</button>`).join("")}</div></div>`).join("");scoreLine(zone,0,cfg.items.length,0);
 zone.addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const card=b.closest(".qcard");if(card.dataset.done)return;card.dataset.done="1";const i=+card.dataset.q,it=cfg.items[i],v=b.dataset.v,ok=v===it.ans,g=$(`#gap-${cfg.id}-${i}`);g.textContent=v;g.classList.add(ok?"right":"wrong");$$(".chip",card).forEach(c=>c.disabled=true);b.classList.add(ok?"picked-good":"picked-bad");answered++;
 if(ok){score++;earned+=10;noteAnswer(true,e,10);}else{err++;noteAnswer(false,e);}log.push({q:(it.pre+" ___ "+(it.post||"")).replace(/<[^>]+>/g,""),user:v,correct:it.ans,ok,expl:it.expl});scoreLine(zone,answered,cfg.items.length,err);if(answered===cfg.items.length)completeTask(cfg.id,{score,max:cfg.items.length,errors:err,xp:earned+(err===0?15:0),log},zone);});}
