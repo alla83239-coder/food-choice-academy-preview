@@ -1123,22 +1123,11 @@ return '<div class="progress-line"><i style="width:'+(idx/total*100)+'%"></i></d
 }
 function renderSkillsTestPanelV13(el){
 var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
-var form=S.skillForm==="B"?"B":"A";if(!S.skillAnswers)S.skillAnswers={A:{},B:{}};
-var part=S.skillPart||"everyday";if(!SKILLS_PARTS_V13.includes(part))part="everyday";
-holder.innerHTML='<div class="card skills-test-card"><div class="skills-test-intro"><div><span class="tag acc">Integrated assessment</span><h2>Skills Test · Unit 3</h2><p>Complete the single assessment version. Listen to Track 04, read the adapted Okinawa passage, and complete the interactive tasks. Feedback identifies what to review without showing answer keys.</p></div><div class="skills-form-switch"><button data-st-form="A" class="'+(form==="A"?"active":"")+'">Form A</button><button data-st-form="B" class="'+(form==="B"?"active":"")+'">Form B</button></div></div><div class="skills-part-tabs">'+SKILLS_PARTS_V13.map(function(k){return '<button data-st-part="'+k+'" class="'+(k===part?"active":"")+'">'+SKILLS_PART_LABELS_V13[k]+'</button>';}).join("")+'</div><div id="skillsPartBody">'+renderSkillPartV13(form,part)+'</div></div>';
-var root=$("#a-skills",el);
-root.addEventListener("input",function(e){var t=e.target;if(!t.matches("[data-st-value],[data-st-draft],[data-st-rubric]"))return;var f=S.skillForm==="B"?"B":"A",p=S.skillPart||"everyday";if(!S.skillAnswers[f])S.skillAnswers[f]={};if(!S.skillAnswers[f][p])S.skillAnswers[f][p]={};if(t.hasAttribute("data-st-draft"))S.skillAnswers[f][p].draft=t.value;else if(t.hasAttribute("data-st-rubric"))S.skillAnswers[f][p]["r"+t.dataset.stRubric]=t.value;else S.skillAnswers[f][p][t.dataset.stValue]=t.value;save();});
-root.addEventListener("change",function(e){var t=e.target;if(!t.matches("[data-st-value],[data-st-draft],[data-st-rubric]"))return;var f=S.skillForm==="B"?"B":"A",p=S.skillPart||"everyday";if(!S.skillAnswers[f])S.skillAnswers[f]={};if(!S.skillAnswers[f][p])S.skillAnswers[f][p]={};if(t.hasAttribute("data-st-draft"))S.skillAnswers[f][p].draft=t.value;else if(t.hasAttribute("data-st-rubric"))S.skillAnswers[f][p]["r"+t.dataset.stRubric]=t.value;else S.skillAnswers[f][p][t.dataset.stValue]=t.value;save();});
-root.addEventListener("click",function(e){
-var fbtn=e.target.closest("[data-st-form]");if(fbtn){S.skillForm=fbtn.dataset.stForm;save();renderSkillsTestPanelV13(el);return;}
-var pbtn=e.target.closest("[data-st-part]");if(pbtn){S.skillPart=pbtn.dataset.stPart;save();renderSkillsTestPanelV13(el);return;}
-var check=e.target.closest("[data-st-check]");if(check){checkSkillPartV13(el,check.dataset.stCheck,e);return;}
-});
-}function renderSkillsTestPanelV13(el){
-var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
 if(!S.skillAnswers)S.skillAnswers={A:{}};
 if(!S.skillAnswers.A)S.skillAnswers.A={};
-if(!S.skillIndexByPart)S.skillIndexByPart={};if(!S.skillRun)S.skillRun={};if(!S.skillRun)S.skillRun={};
+if(!S.skillIndexByPart)S.skillIndexByPart={};
+if(!S.skillRun)S.skillRun={};
+S.skillForm="A";
 var part=S.skillPart||"everyday";if(!SKILLS_PARTS_V13.includes(part))part="everyday";
 holder.innerHTML='<div class="card skills-test-card"><div class="skills-test-intro"><div><span class="tag acc">Integrated assessment</span><h2>Skills Test · Unit 3</h2><p>One assessment version. Listen to Track 04, read the adapted Okinawa passage, and complete each task one question at a time. Feedback points to the source without revealing answer keys.</p></div></div><div class="skills-part-tabs">'+SKILLS_PARTS_V13.map(function(k){return '<button data-st-part="'+k+'" class="'+(k===part?"active":"")+'">'+SKILLS_PART_LABELS_V13[k]+'</button>';}).join("")+'</div><div id="skillsPartBody">'+renderSkillPartV13("A",part)+'</div></div>';
 var root=$("#a-skills",el);
