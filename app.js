@@ -1768,8 +1768,9 @@ Actions["start-fc-mission"]=function(btn){
  const i=Number(btn.dataset.mission),m=FOOD_CHOICE_MISSIONS[i];
  if(!m||!fcUnlocked(i))return;
  if(i===11){
-  if(S.unlocked>=5){S.fcActiveMission=null;App.go({name:"final"});return;}
-  toast("Complete the previous source missions before the final pitch.","info","lock");return;
+  // fcUnlocked(11) already verifies that every earlier project mission is complete.
+  // The new mission flow returns to the map before the legacy chapter summary counter increments.
+  S.fcActiveMission=null;S.unlocked=Math.max(S.unlocked,5);save();App.go({name:"final"});return;
  }
  if(m.target){
   S.fcActiveMission=i;S.started=true;save();
