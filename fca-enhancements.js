@@ -222,7 +222,7 @@ const fcaCrosswordStep={
 };
 if(!LESSONS[0].steps.some(x=>x.task==="3a-crossword")){
  LESSONS[0].steps.splice(2,0,fcaCrosswordStep);
-}FOOD_CHOICE_MISSIONS[1].requires=["3a-read","3a-vocab","3a-crossword"];
+}FOOD_CHOICE_MISSIONS[1].requires=["3a-read","3a-vocab","3a-crossword","3a-cycle","3a-carbon"];
 FOOD_CHOICE_MISSIONS[2].target={l:0,s:3};
 
 /* Rule-based formative English writing coach: all free-text task fields feed the portfolio. */
