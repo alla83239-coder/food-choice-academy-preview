@@ -1233,7 +1233,55 @@ vq.forEach(b=>b.addEventListener("click",()=>{const i=+b.dataset.vq;if(asked.has
 $("#vegGuesses",el).addEventListener("click",e=>{const b=e.target.closest("[data-guess]");if(!b)return;tries++;guessed.add(b.dataset.guess);if(b.dataset.guess===secret[0]){$("#vegResult",el).textContent="Correct identification. The vegetable is shown below.";$("#vegPhoto",el).hidden=false;$("#vegPhoto",el).innerHTML=`<img src="${U(secret[1],480)}" alt="Photograph of ${secret[0]}"><b>${secret[0]}</b>`;$("#vegGuesses",el).innerHTML="";AudioSys.play("ok");}else if(tries===3){$("#vegResult",el).textContent="Three attempts used. Review the clues and start a new round.";$("#vegGuesses",el).innerHTML="";AudioSys.play("no");}else{$("#vegResult",el).textContent=`Not this vegetable. ${3-tries} attempts remain; the choices have changed.`;drawGuesses();AudioSys.play("no");}});
 $("#newVegGame",el).addEventListener("click",resetGame);drawGuesses();
 
-function drawTri(){const pool=shuffle(VOCAB).slice(0,6);let n=0,sel={};const box=$("#triGame",el);function show(){if(n===pool.length){box.innerHTML=`<p class="feedback-success">All trios completed.</p><button id="newTri" class="btn btn-ghost btn-sm">New set</button>`;$("#newTri",box).addEventListener("click",()=>{n=0;show();});return;}sel={};const cols={word:shuffle(pool.map((x,i)=>[i,x.t])),def:shuffle(pool.map((x,i)=>[i,x.en])),ru:shuffle(pool.map((x,i)=>[i,x.ru]))};box.innerHTML=`<div class="tri-columns">${Object.entries(cols).map(([k,a])=>`<div class="tri-column"><h3>${k==="word"?"Word":k==="def"?"English definition":"Russian translation"}</h3>${a.map(([i,v])=>`<button class="tri-item" data-col="${k}" data-i="${i}">${v}</button>`).join("")}</div>`).join("")}</div><button class="btn btn-gold btn-sm" id="checkTri">Check trio</button><div id="triHint" class="feedback-hint">Selections remain editable until checked.</div>`;box.querySelectorAll(".tri-item").forEach(b=>b.addEventListener("click",()=>{sel[b.dataset.col]=+b.dataset.i;box.querySelectorAll(`[data-col="${b.dataset.col}"]`).forEach(x=>x.classList.toggle("selected",x===b));}));$("#checkTri",box).addEventListener("click",()=>{if(!["word","def","ru"].every(k=>k in sel)){$("#triHint",box).textContent="Choose one item in every column.";return;}if(["word","def","ru"].every(k=>sel[k]===n)){$("#triHint",box).textContent="The trio matches. Continue to the next word.";setTimeout(()=>{n++;show();},400);AudioSys.play("ok");}else{$("#triHint",box).textContent="Re-read the dictionary entry; change any selection and check the definition and translation again.";AudioSys.play("no");}});}show();}drawTri();
+function drawTri(){
+ const pool=shuffle(VOCAB.filter(function(x){return x&&x.t&&x.en&&x.ru;})).slice(0,6);
+ let score=0,errors=0;
+ const used=new Set(),log=[];
+ const box=$("#triGame",el);
+ function finish(){
+  const result={score:score,max:pool.length,errors:errors,xp:score*5,log:log};
+  completeTask("additional-trio",result,null);
+  S.additionalMaterials=S.additionalMaterials||{};
+  S.additionalMaterials.trio={done:true,score:score,errors:errors,total:pool.length,createdAt:Date.now()};
+  save();
+  box.innerHTML='<div class="card soft"><span class="tag">One attempt per trio · complete</span><h3>Word · Definition · Translation</h3><p>Score: <b>'+score+'/'+pool.length+'</b> · Errors: '+errors+'</p><p class="small muted">All six responses are recorded. Your mistakes reduce the score but do not block the activity.</p></div>';
+ }
+ function show(){
+  if(used.size>=pool.length){finish();return;}
+  let selected={word:null,def:null,ru:null},locked=false;
+  const columns={
+   word:shuffle(pool.map(function(x,i){return [i,x.t];})),
+   def:shuffle(pool.map(function(x,i){return [i,x.en];})),
+   ru:shuffle(pool.map(function(x,i){return [i,x.ru];}))
+  };
+  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+(used.size/pool.length*100)+'%"></i></div><div class="fca-question-meta"><span>TRIO '+(used.size+1)+' / '+pool.length+'</span><span>One attempt · choose a matching set</span></div><div class="tri-columns fca-trio-columns">'+Object.entries(columns).map(function(entry){const key=entry[0],items=entry[1];return '<div class="tri-column"><h3>'+(key==="word"?"Word":key==="def"?"English definition":"Russian translation")+'</h3>'+items.map(function(item){return '<button type="button" class="tri-item" data-col="'+key+'" data-i="'+item[0]+'" '+(used.has(item[0])?'disabled':'')+'>'+esc(item[1])+'</button>';}).join("")+'</div>';}).join("")+'</div><div class="fad-feedback" id="triHint" aria-live="polite">Choose one word, its English definition and its Russian translation.</div><div class="footer-bar"><span class="small muted">'+used.size+' / '+pool.length+' trios attempted</span><button type="button" class="btn btn-gold" id="checkTri" disabled>Check trio</button></div>';
+  box.querySelectorAll(".tri-item").forEach(function(button){button.addEventListener("click",function(){
+   if(locked||button.disabled)return;
+   const key=button.dataset.col;selected[key]=Number(button.dataset.i);
+   box.querySelectorAll('[data-col="'+key+'"]').forEach(function(x){x.classList.toggle("selected",x===button);});
+   $("#checkTri",box).disabled=!(selected.word!==null&&selected.def!==null&&selected.ru!==null);
+  });});
+  $("#checkTri",box).addEventListener("click",function(event){
+   if(locked||selected.word===null||selected.def===null||selected.ru===null)return;
+   locked=true;
+   const target=selected.word,correct=selected.def===target&&selected.ru===target;
+   used.add(target);
+   if(correct){score++;noteAnswer(true,event,5);}
+   else{errors++;noteAnswer(false,event);}
+   log.push({q:pool[target].t,user:(pool[selected.def].en||"")+" · "+(pool[selected.ru].ru||""),correct:pool[target].en+" · "+pool[target].ru,ok:correct,focus:"Match the selected word with the definition and translation that share the same meaning."});
+   box.querySelectorAll(".tri-item").forEach(function(x){x.disabled=true;});
+   $("#triHint",box).textContent=correct?"Correct trio recorded. Continue to the next one.":"This trio is recorded as incorrect. Your score is lower, but you can continue.";
+   const next=$("#checkTri",box);next.disabled=false;next.textContent=used.size===pool.length?"Finish activity":"Next trio "+icon("right");
+   next.onclick=function(){if(used.size>=pool.length)finish();else show();};
+  });
+ }
+ const saved=S.additionalMaterials&&S.additionalMaterials.trio;
+ if(saved&&saved.done){
+  box.innerHTML='<div class="card soft"><b>Activity complete</b><p>Score: '+saved.score+'/'+(saved.total||6)+' · Errors: '+saved.errors+'. Your one attempt is saved.</p></div>';
+  return;
+ }
+ show();
+}drawTri();
 
 const budgetMap={"Sunday meal for five":45,"Picnic":22,"Romantic dinner for two":38,"Full English breakfast":28,"Fitness enthusiast":35,"Child’s party":32};
 $("#checkRiceLab",el).addEventListener("click",()=>{const parts=[$("#riceDishes",el).value.trim(),$("#riceMethod",el).value.trim(),$("#riceCompare",el).value.trim()],hint=$("#riceHint",el);if(parts.some(x=>x.length<20)){hint.textContent="Complete all three parts in full sentences or clear notes before checking.";hint.dataset.status="incomplete";AudioSys.play("no");return;}const method=parts[1].split(/\s+/).length,compare=/less|least|more|most|fewer|fewest/i.test(parts[2]);hint.textContent=method>=12&&compare?"Rice Lab complete. Your method has enough detail and your comparison uses comparative language.":"All three parts are recorded. Add more sequencing detail to the method and use a clear comparative or superlative in the energy/water comparison.";hint.dataset.status="complete";S.additionalMaterials=S.additionalMaterials||{};S.additionalMaterials.rice={dishes:parts[0],method:parts[1],comparison:parts[2]};save();AudioSys.play("ok");});
