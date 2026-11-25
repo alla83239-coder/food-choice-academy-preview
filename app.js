@@ -376,6 +376,69 @@ const LESSONS=[
 {tag:"Grammar",ic:"chat",title:"Will & Dean: Lunch Dialogue",task:"3b-gaps",build(b){b.innerHTML=stepShell("Grammar","chat","Will & Dean: Lunch Dialogue","Complete with <b>some</b> or <b>any</b>. Watch for offers!")+taskCard();engGaps($(".task-zone",b),{id:"3b-gaps",items:GAPS3B});}},
 {tag:"Grammar",ic:"apple",title:"The Health Expert's Report",task:"3b-expert",build(b){b.innerHTML=stepShell("Grammar","apple","The Health Expert's Report","Choose the correct quantifier for each line.")+taskCard();engGaps($(".task-zone",b),{id:"3b-expert",items:EXPERT3B});}},
 {tag:"Reading",ic:"book",title:"Case File: Fad Diets",task:"3b-fad",build(b){b.innerHTML=stepShell("Reading","book","Case File: Fad Diets","Read the complete article. Then check what it says — and what it does not claim.")+fadReadingMarkup()+`<div class="card" style="margin-top:14px"><h3>Critical reading · Check the evidence</h3><p class="muted small">Choose the answer supported by the article. If you make a mistake, the feedback points you back to the relevant passage without giving away the answer.</p><div class="task-zone"></div></div>`;engFadQuiz($(".task-zone",b),{id:"3b-fad",items:FAD3B});}},
+
+{tag:"Reading · Workbook",ic:"table",title:"Compare the Three Fad Diets",task:"3b-fad-table",build(b){
+ b.innerHTML=stepShell("Reading · Workbook","table","Compare the Three Fad Diets","Workbook 3 · Reading · Use the article to complete the comparison. Some information is not stated in the text.")+`<div class="card"><p class="muted small">Complete every cell for all three diets. If an option is not supported by the article, look for “The article doesn't say”. Incorrect choices can be tried again.</p><div class="table-scroll"><table class="gtable" id="fadCompare"><thead><tr><th>Question</th><th>Cabbage Soup Diet</th><th>Master Cleanse</th><th>Blood Group Diet</th></tr></thead><tbody></tbody></table></div><div class="footer-bar"><span class="muted small" id="fadCompareStatus">18 cells to complete</span><span class="small muted">Evidence-based reading · Workbook p. 25</span></div></div>`;
+ const data=[
+  ["When did it become famous?",["In the 1980s","In 1941","In 1996"],0,["In 1941","In 1996","In the 1980s"],2,["In the 1980s","In 1941","In 1996"],2],
+  ["Who invented it?",["Nobody knows","Stanley Burroughs","Peter D’Adamo"],0,["Nobody knows","Stanley Burroughs","Peter D’Adamo"],1,["Nobody knows","Stanley Burroughs","Peter D’Adamo"],2],
+  ["What is its aim?",["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],0,["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],1,["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],2],
+  ["How long do you stay on the diet?",["One week","Two weeks","The article doesn't say"],0,["One week","Two weeks","The article doesn't say"],1,["One week","Two weeks","The article doesn't say"],2],
+  ["What do you have to do?",["Eat cabbage soup","Drink special lemonade","Eat only certain food types"],0,["Eat cabbage soup","Drink special lemonade","Eat only certain food types"],1,["Eat cabbage soup","Drink special lemonade","Eat only certain food types"],2],
+  ["Does the diet work?",["No. You may lose weight, but put it on again.","No. It has very few calories and may cause tiredness and headaches.","Not really. It is quite healthy, but there is no scientific evidence for blood-type food rules."],0,["No. You may lose weight, but put it on again.","No. It has very few calories and may cause tiredness and headaches.","Not really. It is quite healthy, but there is no scientific evidence for blood-type food rules."],1,["No. You may lose weight, but put it on again.","No. It has very few calories and may cause tiredness and headaches.","Not really. It is quite healthy, but there is no scientific evidence for blood-type food rules."],2]
+ ];
+ const body=$("#fadCompare tbody",b);let completed=0,errors=0,earned=0,log=[];
+ body.innerHTML=data.map((r,ri)=>'<tr><th>'+r[0]+'</th>'+[0,1,2].map(ci=>'<td><div class="fad-cell" data-ri="'+ri+'" data-ci="'+ci+'"><div class="chiprow">'+shuffle(r.slice(1+ci*2,3+ci*2).map((v,i)=>({v,ok:i===r[2+ci*2]}))).map(x=>'<button class="chip" data-value="'+esc(x.v)+'">'+esc(x.v)+'</button>').join("")+'</div><small class="muted fad-cell-feedback" aria-live="polite"></small></div></td>').join("")+'</tr>').join("");
+ body.addEventListener("click",e=>{
+  const btn=e.target.closest("button.chip");if(!btn)return;
+  const cell=btn.closest(".fad-cell");if(cell.dataset.done)return;
+  const ri=+cell.dataset.ri,ci=+cell.dataset.ci,row=data[ri],answerIndex=row[2+ci*2],answer=row[1+ci*2][answerIndex],ok=btn.dataset.value===answer;
+  if(ok){cell.dataset.done="1";cell.querySelectorAll("button").forEach(x=>x.disabled=true);btn.classList.add("picked-good");cell.querySelector(".fad-cell-feedback").textContent="Evidence located.";completed++;earned+=2;noteAnswer(true,e,2);log.push({q:row[0]+" · "+["Cabbage Soup Diet","Master Cleanse","Blood Group Diet"][ci],user:btn.dataset.value,ok:true,focus:"The selected information is supported by the article. Keep the relevant paragraph as evidence."});}
+  else{btn.disabled=true;btn.classList.add("picked-bad");cell.querySelector(".fad-cell-feedback").textContent="Not quite. Re-read the section and try another option.";errors++;noteAnswer(false,e);log.push({q:row[0]+" · "+["Cabbage Soup Diet","Master Cleanse","Blood Group Diet"][ci],user:btn.dataset.value,ok:false,focus:"Return to the relevant diet section. Check the date, person, aim, duration, instructions or evaluation."});}
+  $("#fadCompareStatus",b).textContent=completed+" / 18 cells completed";
+  if(completed===18)completeTask("3b-fad-table",{score:18,max:18,errors,xp:earned+15,log},b);
+ });
+}},
+{tag:"Vocabulary · Workbook",ic:"book",title:"Evidence, Nutrients & Ingredients",task:"3b-fad-vocab",build(b){
+ b.innerHTML=stepShell("Vocabulary · Workbook","book","Evidence, Nutrients & Ingredients","Workbook 3 · Reading · Work with the bold nouns from the article. Match the meanings, then complete the sentences.")+`<div class="card"><span class="tag">Part 1 · Match the definitions</span><p class="muted small">Choose the noun that matches each definition. Use each word once.</p><div id="fadVocabDefs"></div><div class="divider"></div><span class="tag">Part 2 · Complete the sentences</span><p class="muted small">Use the same vocabulary to complete the sentences from the Workbook exercise.</p><div id="fadVocabSentences"></div><div class="footer-bar"><span class="muted small" id="fadVocabStatus">16 answers to complete</span></div></div>`;
+ const terms=["evidence","nutrients","ingredients","dieticians","researchers","recipe","digestion","mixture"];
+ const defs=[
+  "facts based on experiments or experiences which show you that something is true",
+  "substances found in food which humans need to grow and stay healthy",
+  "the different things you need in order to make a particular dish",
+  "people who advise others about what food to eat to stay healthy",
+  "people who study things so that they can find out new facts about them",
+  "instructions that tell you how to make a meal",
+  "a natural process inside your body; your body breaks food down into chemicals it can use",
+  "a combination of things put together"
+ ];
+ const sentences=[
+  "All the ___ in cabbage soup are vegetables.",
+  "Scientific studies by ___ show that fad diets do not work.",
+  "This drink is a ___ of pineapple juice, orange juice and sparkling water.",
+  "We paid a private ___ to advise my mother what to eat after she came home from hospital.",
+  "My favourite ___ for chocolate cake is in this cookery book.",
+  "Tomatoes, spinach and blueberries all contain a lot of ___, so they are good for you.",
+  "There is a lot of scientific ___ that a balanced diet and exercise are both important for staying healthy.",
+  "My grandfather has problems with his ___, so he can't eat some kinds of food and he also has to take medicine."
+ ];
+ const defsZone=$("#fadVocabDefs",b),sentZone=$("#fadVocabSentences",b);let done=0,errors=0,xp=0,log=[];
+ function renderGroup(zone,items,kind){
+  zone.innerHTML=items.map((q,i)=>'<div class="qcard" data-kind="'+kind+'" data-i="'+i+'"><div class="qtext"><span class="qnum">'+(i+1)+'.</span>'+q+'</div><div class="chiprow">'+shuffle(terms).map(t=>'<button class="chip" data-v="'+t+'">'+t+'</button>').join("")+'</div><small class="muted fad-vocab-feedback" aria-live="polite"></small></div>').join("");
+ }
+ renderGroup(defsZone,defs,"def");renderGroup(sentZone,sentences,"sent");
+ function check(e){
+  const btn=e.target.closest("button.chip");if(!btn)return;
+  const card=btn.closest(".qcard");if(card.dataset.done)return;
+  const i=+card.dataset.i,kind=card.dataset.kind,expected=kind==="def"?terms[i]:[ "ingredients","researchers","mixture","dieticians","recipe","nutrients","evidence","digestion" ][i],ok=btn.dataset.v===expected;
+  if(ok){card.dataset.done="1";card.querySelectorAll("button").forEach(x=>x.disabled=true);btn.classList.add("picked-good");card.querySelector(".fad-vocab-feedback").textContent="Meaning matched.";done++;xp+=2;noteAnswer(true,e,2);log.push({q:(kind==="def"?"Definition: ":"Sentence: ")+itemsLabel(kind,i),user:btn.dataset.v,ok:true,focus:"The word fits the meaning in the article and the Workbook context."});}
+  else{btn.disabled=true;btn.classList.add("picked-bad");card.querySelector(".fad-vocab-feedback").textContent="Try again. Look at the key idea in the definition or sentence.";errors++;noteAnswer(false,e);log.push({q:(kind==="def"?"Definition: ":"Sentence: ")+itemsLabel(kind,i),user:btn.dataset.v,ok:false,focus:"Re-read the definition or sentence and compare it with the nouns highlighted in the article."});}
+  $("#fadVocabStatus",b).textContent=done+" / 16 answers completed";
+  if(done===16)completeTask("3b-fad-vocab",{score:16,max:16,errors,xp:xp+15,log},b);
+ }
+ function itemsLabel(kind,i){return (kind==="def"?defs:sentences)[i];}
+ defsZone.addEventListener("click",check);sentZone.addEventListener("click",check);
+}},
 {tag:"Functional Language",ic:"chat",title:"The Food Survey",task:"3b-survey",build(b){b.innerHTML=stepShell("Functional Language","chat","The Food Survey","Interview your clients: build the question, listen to the answer, file the report.")+`<div class="card"><div class="task-zone"></div></div>`;buildSurvey($(".task-zone",b));}},
 {tag:"Case Decision",ic:"heart",title:"Jordan's Health Plan",task:"3b-plan",build(b){b.innerHTML=stepShell("Case Decision","heart","Jordan's Health Plan","Recommend exactly TWO realistic changes for Jordan.")+taskCard();engMulti($(".task-zone",b),{id:"3b-plan",k:2,opts:PLAN3B,hint:"Use the evidence: no vegetables, lots of sugar, lots of sport."});}}
 ]},
