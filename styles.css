@@ -881,3 +881,6 @@ body.no-bar #app{padding:0;max-width:none}
 .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .opts .opt{min-width:0;white-space:normal;text-align:left;line-height:1.35;padding:12px 14px}
 @media(max-width:640px){.opts{grid-template-columns:1fr}}
+
+.spk-photo{width:48px;height:48px;object-fit:cover;border-radius:14px;border:2px solid #fff;box-shadow:0 3px 10px rgba(24,50,40,.14);flex:0 0 auto}
+.spk-top{display:flex;align-items:center;gap:10px}
