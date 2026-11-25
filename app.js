@@ -1155,7 +1155,7 @@ return coachPromptV11(ev);
 noteAnswer=function(ok,ev,amt){noteAnswerBaseCoachV11(ok,ev,amt);if(ok||!ev||!ev.target)return;var region=ev.target.closest(".task-zone")||ev.target.closest(".activity-panel")||ev.target.closest("#a-fad")||ev.target.closest(".gram-section");if(!region)return;region.querySelector(".coach-hint.v11")?.remove();region.insertAdjacentHTML("beforeend",coachFeedbackMarkupV11(coachPromptV13(ev)));};
 
 
-LMS.init();load();AudioSys.on=S.sound!==false;if(S.finished&&!S.rating)S.rating=ratingCalc();App.go({name:"start"});updateTopbar();
+const PREVIEW_MODE=new URLSearchParams(window.location.search).get("preview")==="1";LMS.init();if(PREVIEW_MODE){S=defaultState();LMS.ok=false;}else{load();}AudioSys.on=S.sound!==false;if(S.finished&&!S.rating)S.rating=ratingCalc();App.go({name:"start"});updateTopbar();
 
 
 /* ================= FOOD CHOICE ACADEMY · 12-MISSION JOURNEY =================
