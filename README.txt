@@ -7,6 +7,7 @@ Project journey
 - Investigate adolescent nutrition and macronutrient reference ranges.
 - Compare food choices and greenhouse-gas emissions.
 - Design a one-day menu for breakfast, lunch, snack and drinks.
+- Calculate portion-level energy, protein, carbohydrates, fat and fibre using verified food-composition data; compare macronutrient energy shares with age-group reference ranges.
 - Build a carbon-aware procurement basket with quantities, simulated practice prices and estimated kg CO2e.
 - Select a vending-machine assortment, with storage and allergen information.
 - Plan the canteen layout, equipment, service flow and opening timeline.
