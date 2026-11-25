@@ -362,6 +362,11 @@ completeTask=function(id,res,zone){
  if(zone){
   zone.innerHTML=donePanelHTML(id);
   zone.classList.add("fca-task-complete");
+  const screen=document.querySelector("#app .screen");
+  if(screen){
+   screen.querySelectorAll('[data-action="next-step"]').forEach(function(button){if(!zone.contains(button))button.remove();});
+   zone.querySelectorAll('[data-action="next-step"]').forEach(function(button,i){if(i>0)button.remove();});
+  }
  }
 };
 function fcaQuestionSequence(zone,cfg,items){
@@ -380,7 +385,7 @@ function fcaQuestionSequence(zone,cfg,items){
     return '<button type="button" class="opt fca-answer-option" data-option="'+i+'">'+String.fromCharCode(65+i)+'. '+esc(option)+'</button>';
    }).join("")+'</div>'+
    '<div class="fad-feedback fca-answer-feedback" aria-live="polite"></div>'+
-   '<div class="footer-bar fca-question-footer"><span class="small muted">Question '+(index+1)+' of '+items.length+'</span><button type="button" class="btn btn-gold" id="fcaQuestionNext" disabled>Continue '+icon("right")+'</button></div></div>';
+   '<div class="footer-bar fca-question-footer"><span class="small muted">Question '+(index+1)+' of '+items.length+'</span><button type="button" class="btn btn-gold" id="fcaQuestionNext" disabled>'+(index===items.length-1?"Finish task":"Continue")+' '+icon("right")+'</button></div></div>';
   let locked=false;
   $(".fca-answer-option",zone).forEach(function(button){
    button.addEventListener("click",function(event){
@@ -393,6 +398,7 @@ function fcaQuestionSequence(zone,cfg,items){
     if(correct){score++;xp+=8;noteAnswer(true,event,8);}
     else{errors++;noteAnswer(false,event);}
     log.push({q:item.logQuestion||String(item.prompt||"").replace(/<[^>]*>/g,""),user:picked,correct:Array.isArray(item.correct)?item.correct.join(" / "):String(item.correct),ok:correct,focus:item.explanation||"Review the source text or language point."});
+    const progress=$(".fca-question-progress i",zone);if(progress)progress.style.width=((index+1)/items.length*100)+"%";
     $(".fca-answer-feedback",zone).textContent=correct
      ?"Answer recorded. Continue to the next question."
      :"Answer recorded. This mistake lowers the score, but does not stop the mission.";
@@ -648,6 +654,106 @@ const fcaActivitiesBeforeTrio=renderActivities;
 renderActivities=function(el){
  fcaActivitiesBeforeTrio(el);
  fcaBuildTrioAssessment(el);
+};
+
+
+/* === Final usability fixes: 3A pair work and reliable vocabulary trios === */
+if(typeof fcaCrosswordStep!=="undefined"){
+ fcaCrosswordStep.build=function(b){
+  b.innerHTML=stepShell("Communicative Practice","users","Your Plate, Our Planet · Pair Vocabulary","Adapted from Insight 2e Pre-Intermediate Communication Worksheet 3A. Explain at least three expressions without saying the target word; identify whether each is a noun or a verb.")+
+   '<div class="card"><div class="task-zone fca-comm-step-zone">'+communicativeActivityMarkup()+'</div></div>';
+  const zone=b.querySelector(".task-zone"),button=$("#fcaSubmitComm",b),field=$("#fcaCommResponse",b);
+  if(!zone||!button||!field)return;
+  zone.insertAdjacentHTML("afterbegin",'<div class="progress-line fca-question-progress"><i style="width:0%"></i></div><div class="fca-question-meta"><span>PAIR TASK · 1 / 1</span><span>One submission</span></div>');
+  button.textContent="Submit once & continue";
+  button.addEventListener("click",function(event){
+   if(S.results["3a-crossword"])return;
+   const value=field.value.trim(),words=value.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)||[];
+   const passed=words.length>=20;
+   button.disabled=true;
+   const log=[{q:"Pair vocabulary challenge · explain without saying the word",user:value||"No written explanation recorded",correct:"Explain at least three expressions in your own words and identify each as a noun or a verb.",ok:passed,focus:"Use your own wording, let your partner guess and identify the part of speech."}];
+   completeTask("3a-crossword",{score:passed?1:0,max:1,errors:passed?0:1,xp:passed?10:0,log:log},zone);
+   const entry={id:"3a-crossword-pair-notes",route:"Mission 3A · Your Plate, Our Planet",prompt:"Pair vocabulary challenge · explain without saying the word",text:value,analysis:analyseWriting(value,"Food vocabulary explanations"),updatedAt:new Date().toISOString()};
+   const old=S.writingPortfolio.find(function(x){return x.id===entry.id;});
+   if(old)Object.assign(old,entry);else S.writingPortfolio.push(entry);
+   save();
+  });
+ };
+}
+
+/* Rebuild the trio task from unique source entries, with one submission per word. */
+fcaBuildTrioAssessment=function(el){
+ const box=$("#triGame",el);if(!box)return;
+ S.additionalMaterials=S.additionalMaterials||{};
+ const previous=S.additionalMaterials.trio;
+ if(previous&&previous.done&&previous.version===2){
+  box.innerHTML='<div class="card soft"><span class="tag">Activity complete</span><h3>Word · Definition · Translation</h3><p>Score: <b>'+previous.score+'/'+previous.total+'</b> · Mistakes: '+previous.errors+'. One attempt has been recorded.</p></div>';
+  return;
+ }
+ if(previous&&previous.done&&previous.version!==2){
+  delete S.additionalMaterials.trio;
+  delete S.results["additional-trio"];
+  delete S.logs["additional-trio"];
+ }
+ const unique=[],seen=new Set();
+ VOCAB.forEach(function(item){
+  if(!item||!item.t||!item.en||!item.ru||seen.has(item.t))return;
+  seen.add(item.t);unique.push(item);
+ });
+ const pool=shuffle(unique).slice(0,6);
+ let index=0,score=0,errors=0,log=[];
+ function distinctOptions(target,key){
+  const values=new Set([target[key]]),distractors=[];
+  shuffle(unique.filter(function(item){return item.t!==target.t;})).forEach(function(item){
+   const value=String(item[key]||"").trim();
+   if(!value||values.has(value)||distractors.length>=3)return;
+   values.add(value);distractors.push(item);
+  });
+  return shuffle([target].concat(distractors));
+ }
+ function show(){
+  if(index>=pool.length){
+   const result={version:2,done:true,score:score,errors:errors,total:pool.length,questions:log,createdAt:Date.now()};
+   S.additionalMaterials.trio=result;
+   completeTask("additional-trio",{score:score,max:pool.length,errors:errors,xp:score*5,log:log},null);
+   save();
+   box.innerHTML='<div class="card soft"><span class="tag">Activity complete</span><h3>Word · Definition · Translation</h3><p>Score: <b>'+score+'/6</b> · Mistakes: '+errors+'. Your one attempt is saved.</p><p class="small muted">Return to the activity tabs to choose another exercise.</p></div>';
+   return;
+  }
+  const target=pool[index],defs=distinctOptions(target,"en"),translations=distinctOptions(target,"ru");
+  const selected={definition:null,translation:null};
+  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+(index/pool.length*100)+'%"></i></div>'+
+   '<div class="fca-question-meta"><span>WORD TRIO '+(index+1)+' / '+pool.length+'</span><span>One submission</span></div>'+
+   '<div class="tri-columns fca-trio-columns"><div class="tri-column"><h3>Target word</h3><div class="tri-target-word">'+esc(target.t)+'</div><small class="muted">Find its exact meaning and translation.</small></div>'+
+   '<div class="tri-column"><h3>English definition</h3><div class="tri-options">'+defs.map(function(item,i){return '<button type="button" class="tri-item" data-col="definition" data-i="'+i+'">'+esc(item.en)+'</button>';}).join("")+'</div></div>'+
+   '<div class="tri-column"><h3>Russian translation</h3><div class="tri-options">'+translations.map(function(item,i){return '<button type="button" class="tri-item" data-col="translation" data-i="'+i+'">'+esc(item.ru)+'</button>';}).join("")+'</div></div></div>'+
+   '<div class="fad-feedback fca-answer-feedback" id="fcaTrioFeedback" aria-live="polite">Choose one definition and one translation, then submit once.</div>'+
+   '<div class="footer-bar"><span class="small muted">Both selections are required.</span><button type="button" class="btn btn-gold" id="fcaTrioSubmit" disabled>Submit this trio</button></div>';
+  box.querySelectorAll(".tri-item").forEach(function(button){
+   button.addEventListener("click",function(){
+    if(button.disabled)return;
+    const col=button.dataset.col;
+    if(selected[col]!==null)return;
+    selected[col]=Number(button.dataset.i);
+    box.querySelectorAll('.tri-item[data-col="'+col+'"]').forEach(function(option){
+     option.disabled=true;option.classList.toggle("selected",option===button);
+    });
+    $("#fcaTrioSubmit",box).disabled=selected.definition===null||selected.translation===null;
+   });
+  });
+  $("#fcaTrioSubmit",box).addEventListener("click",function(event){
+   if(selected.definition===null||selected.translation===null||this.disabled)return;
+   const ok=defs[selected.definition].t===target.t&&translations[selected.translation].t===target.t;
+   if(ok){score++;noteAnswer(true,event,5);}else{errors++;noteAnswer(false,event);}
+   log.push({q:target.t,user:defs[selected.definition].en+" · "+translations[selected.translation].ru,correct:target.en+" · "+target.ru,ok:ok,focus:"Match both the English definition and Russian translation to the target word."});
+   box.querySelectorAll(".tri-item").forEach(function(option){option.disabled=true;});
+   const progress=$(".fca-question-progress i",box);if(progress)progress.style.width=((index+1)/pool.length*100)+"%";
+   $("#fcaTrioFeedback",box).textContent=ok?"Both matches are correct. Continue to the next word.":"This trio is recorded. The mistake lowers the score only; continue to the next word.";
+   const submit=$("#fcaTrioSubmit",box);submit.disabled=false;submit.textContent=index===pool.length-1?"Finish activity":"Next word";
+   submit.onclick=function(){index++;show();};
+  });
+ }
+ show();
 };
 
 App.go({name:"start"});updateTopbar();
