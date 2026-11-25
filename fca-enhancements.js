@@ -373,7 +373,7 @@ function fcaQuestionSequence(zone,cfg,items){
   }
   const item=items[index],options=shuffle(item.options.map(String));
   zone.innerHTML=
-   '<div class="progress-line fca-question-progress"><i style="width:'+(index/items.length*100)+'%"></i></div>'+
+   '<div class="progress-line fca-question-progress"><i style="width:'+((index+1)/items.length*100)+'%"></i></div>'+
    '<div class="fca-question-meta"><span>'+(cfg.label||"QUESTION")+' '+(index+1)+' / '+items.length+'</span><span>One attempt</span></div>'+
    '<div class="qcard fca-one-question"><div class="qtext">'+(item.prompt||"")+'</div>'+
    '<div class="fca-question-options">'+options.map(function(option,i){
@@ -609,10 +609,14 @@ function fcaBuildTrioAssessment(el){
    return;
   }
   const target=pool[index];
-  const defs=shuffle([target].concat(shuffle(VOCAB.filter(function(x){return x.t!==target.t&&x.en!==target.en;})).slice(0,3)));
-  const translations=shuffle([target].concat(shuffle(VOCAB.filter(function(x){return x.t!==target.t&&x.ru!==target.ru;})).slice(0,3)));
+  const seenDefinitions=new Set([String(target.en).trim().toLowerCase()]);
+  const definitionDistractors=shuffle(VOCAB.filter(function(x){const value=String(x.en||"").trim().toLowerCase();if(!value||x.t===target.t||seenDefinitions.has(value))return false;seenDefinitions.add(value);return true;})).slice(0,3);
+  const seenTranslations=new Set([String(target.ru).trim().toLowerCase()]);
+  const translationDistractors=shuffle(VOCAB.filter(function(x){const value=String(x.ru||"").trim().toLowerCase();if(!value||x.t===target.t||seenTranslations.has(value))return false;seenTranslations.add(value);return true;})).slice(0,3);
+  const defs=shuffle([target].concat(definitionDistractors));
+  const translations=shuffle([target].concat(translationDistractors));
   const selected={def:null,ru:null};
-  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+(index/pool.length*100)+'%"></i></div>'+
+  box.innerHTML='<div class="progress-line fca-question-progress"><i style="width:'+((index+1)/pool.length*100)+'%'"></i></div>'+
    '<div class="fca-question-meta"><span>TRIO '+(index+1)+' / '+pool.length+'</span><span>One attempt</span></div>'+
    '<div class="tri-columns fca-trio-columns"><div class="tri-column"><h3>Word</h3><div class="tri-target-word">'+esc(target.t)+'</div><small class="muted">Match this word.</small></div>'+
    '<div class="tri-column"><h3>English definition</h3>'+defs.map(function(x,i){return '<button type="button" class="tri-item" data-col="def" data-i="'+i+'">'+esc(x.en)+'</button>';}).join("")+'</div>'+
