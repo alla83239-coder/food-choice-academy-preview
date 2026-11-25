@@ -828,3 +828,17 @@ body.no-bar #app{padding:0;max-width:none}
 .fca-learner-chip b{font-size:13px}
 .name-input{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 @media(max-width:760px){.fca-login-screen{grid-template-columns:1fr}.fca-login-visual{min-height:340px;padding:28px}.fca-login-copy h1{font-size:46px}.fca-login-panel{padding:28px 22px}}
+
+/* 3A pair vocabulary task — consistent Food Choice Academy cards */
+.fca-comm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.fca-comm-word{display:flex;flex-direction:column;gap:7px;padding:15px;border:1px solid var(--goldLine);border-radius:14px;background:linear-gradient(145deg,#fffdf8,#f4efe3);min-width:0}
+.fca-comm-word>.tag{align-self:flex-start}
+.fca-comm-word>b{font-size:16px;color:var(--ink)}
+.fca-comm-word>small{font-size:11px;line-height:1.55;color:var(--muted)}
+.fca-comm-response{display:grid;gap:8px;margin-top:20px}
+.fca-comm-response>b{font-size:14px;color:var(--ink)}
+.fca-comm-response>span{font-size:12px;line-height:1.6;color:var(--muted)}
+.fca-comm-response textarea{width:100%;min-height:150px;padding:13px;border:1px solid var(--goldLine);border-radius:12px;background:#fffdf8;color:var(--ink);font:500 13px/1.65 Montserrat,sans-serif;resize:vertical}
+.fca-comm-response textarea:focus{outline:2px solid #d2b66f;outline-offset:2px}
+@media(max-width:850px){.fca-comm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.fca-comm-grid{grid-template-columns:1fr}}
