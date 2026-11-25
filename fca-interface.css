@@ -98,3 +98,36 @@ body.no-bar #app{width:100%!important;max-width:none!important;margin:0!importan
  .fca-phone-dock.is-collapsed{width:100px}
 }
 @media print{#topbar,#fcaPhoneDock{display:none!important}#app{width:100%!important;margin:0!important;padding:0!important}}
+
+
+/* Consistent reading, assessment and desktop-workspace refinements */
+#app .small,#app .muted,#app .tag,#app .fca-question-meta,#app .fca-phone-message,
+#app .fca-writing-head,#app .fca-reading-count{ text-align:left!important; }
+#app .reading p,#app .fca-reading-page p,#app .fca-student-guide p,
+#app .fca-client-card p,#app .fca-one-question .qtext{
+ text-align:justify!important;text-justify:inter-word;hyphens:auto;
+}
+#app .fca-reading-page[hidden]{display:none!important}
+#app .fca-reading-pages .fca-reading-page{min-height:220px}
+#app .fca-reading-nav{position:relative}
+#app .fca-one-question{margin:0;padding:clamp(16px,2vw,26px)}
+#app .fca-answer-option{white-space:normal!important;overflow-wrap:anywhere}
+#app .fca-question-footer{display:flex;justify-content:space-between;align-items:center;gap:12px}
+#app .fca-task-complete{display:block}
+#app .fca-task-complete>.done-panel{margin-top:0}
+#app .fca-task-complete>.footer-bar{margin-top:12px}
+#app .fca-trio-columns .tri-item:disabled{opacity:.55;cursor:not-allowed}
+#app .fca-trio-columns .tri-item.selected{background:#f6edda;border-color:var(--gold);color:var(--forest)}
+#app .fca-mission-progress-track i,#app .fca-question-progress i{transition:width .25s ease}
+.fca-phone-message{overflow-wrap:anywhere}
+@media(min-width:1001px){
+ #app .screen{max-width:1500px;margin:0 auto}
+ #app .fca-mission-progress{position:sticky;top:12px;z-index:30}
+}
+@media(max-width:760px){
+ #app .fca-question-options{grid-template-columns:1fr}
+ #app .fca-mission-progress{padding:11px 12px}
+ #app .fca-question-meta{font-size:9px}
+ #app .fca-question-footer{align-items:stretch}
+ #app .fca-question-footer .btn{min-width:124px}
+}
