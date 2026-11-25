@@ -877,3 +877,7 @@ body.no-bar #app{padding:0;max-width:none}
 .veg-choice-row .veg-option span{text-transform:capitalize}
 .veg-questions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 @media(max-width:640px){.veg-choice-row{grid-template-columns:repeat(2,minmax(0,1fr))}.veg-choice-row .veg-option img{height:88px}.veg-questions{grid-template-columns:1fr}}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opts .opt{min-width:0;white-space:normal;text-align:left;line-height:1.35;padding:12px 14px}
+@media(max-width:640px){.opts{grid-template-columns:1fr}}
