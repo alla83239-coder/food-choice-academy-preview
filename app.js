@@ -384,6 +384,31 @@ function buildHealthyQuestionnaire(zone){
  }
  show();
 }
+function buildSurvey(zone){
+ let i=0,score=0,err=0,earned=0,log=[];
+ zone.innerHTML=`<div class="chat-box" id="svChat"></div><div id="svCtl" style="margin-top:14px"></div>`;
+ const chat=$("#svChat",zone),ctl=$("#svCtl",zone);
+ function addMsg(who,text,me){chat.insertAdjacentHTML("beforeend",`<div class="msg${me?" me":""}">${avatar(me?"ben":who,40)}<div class="bub">${me?"":`<span class="who">${CHARS[who].name}</span>`}${text}</div></div>`);chat.scrollTop=chat.scrollHeight;}
+ function step(){
+  if(i>=SURVEY3B.length){completeTask("3b-client-interview",{score,max:8,errors:err,xp:earned+(err===0?15:0),log},zone);return;}
+  const item=SURVEY3B[i];
+  ctl.innerHTML=`<div class="qcard"><div class="qtext"><span class="qnum">Q${i+1}.</span>Ask ${CHARS[item.who].name.split(",")[0]}: <span class="gap" id="svGap">…</span>${item.qpost}</div><div class="chiprow">${item.qopts.map(o=>`<button class="chip" data-v="${o}">${o}</button>`).join("")}</div></div>`;
+  $$(".chip",ctl).forEach(c=>c.addEventListener("click",e=>{
+   const v=c.dataset.v,ok=v===item.qans;$("#svGap",ctl).textContent=v;$("#svGap",ctl).classList.add(ok?"right":"wrong");$$(".chip",ctl).forEach(x=>x.disabled=true);c.classList.add(ok?"picked-good":"picked-bad");
+   if(ok){score++;earned+=5;noteAnswer(true,e,5);}else{err++;noteAnswer(false,e);}
+   log.push({q:"___"+item.qpost,user:v,correct:item.qans,ok});addMsg("ben",v+item.qpost,true);setTimeout(()=>{addMsg(item.who,item.reply,false);report(item);},650);
+  }));
+ }
+ function report(item){
+  ctl.innerHTML=`<div class="qcard soft"><div class="qtext">${icon("note")} ${item.rlabel}</div><div class="chiprow">${shuffle(item.ropts).map(o=>`<button class="chip" data-v="${esc(o)}">${o}</button>`).join("")}</div></div>`;
+  $$(".chip",ctl).forEach(c=>c.addEventListener("click",e=>{
+   const v=c.dataset.v,ok=v===item.rans;$$(".chip",ctl).forEach(x=>x.disabled=true);c.classList.add(ok?"picked-good":"picked-bad");
+   if(ok){score++;earned+=5;noteAnswer(true,e,5);}else{err++;noteAnswer(false,e);}
+   log.push({q:item.rlabel,user:v,correct:item.rans,ok});i++;setTimeout(step,500);
+  }));
+ }
+ step();
+}
 function buildShop(zone){const BUD=25;let cart=new Set(),checked=false;zone.innerHTML=`<div class="shop-layout"><div><div class="shop-grid" id="shopGrid">${SHOP_ITEMS.map(it=>`<div class="shop-item" data-id="${it.id}">${imgHTML(it.img,it.n,"","leaf")}<b>${it.n}</b><div class="shop-tags"><span class="stag ${it.h>0?"h":"bad"}">${icon("heart")}</span><span class="stag ${it.e>0?"e":"bad"}">${icon("leaf")}</span>${it.pr?`<span class="stag p">${icon("bolt")}</span>`:""}</div><div class="price">£${it.p.toFixed(2)}</div><button class="btn btn-ghost btn-sm add-btn">${icon("cart")} Add</button></div>`).join("")}</div></div><div class="card soft trolley"><b style="display:flex;gap:8px;align-items:center">${icon("cart")} Your trolley</b><div class="budget-bar"><div class="budget-fill" id="budFill" style="width:0%"></div></div><div class="small" style="font-weight:800" id="budTxt">£0.00 / £25.00</div><div class="trolley-list" id="troList"><span class="muted small">Empty — add items.</span></div><div class="divider" style="margin:12px 0"></div><b class="small">Constraints</b><div id="conList"></div><button class="btn btn-gold" id="checkout" style="width:100%;margin-top:12px">${icon("check")} Checkout</button></div></div>`;
 const cons=()=>{const items=[...cart].map(id=>SHOP_ITEMS.find(x=>x.id===id));const spent=items.reduce((a,x)=>a+x.p,0);return[{t:`Within £25 (now £${spent.toFixed(2)})`,ok:spent<=BUD&&items.length>0},{t:`4+ healthy items (${items.filter(x=>x.h>0).length})`,ok:items.filter(x=>x.h>0).length>=4},{t:`1+ protein (${items.filter(x=>x.pr).length})`,ok:items.filter(x=>x.pr).length>=1},{t:`Max 2 junk items (${items.filter(x=>x.h<0).length})`,ok:items.filter(x=>x.h<0).length<=2},{t:`3+ eco items (${items.filter(x=>x.e>0).length})`,ok:items.filter(x=>x.e>0).length>=3}];};
 function draw(){const items=[...cart].map(id=>SHOP_ITEMS.find(x=>x.id===id));const spent=items.reduce((a,x)=>a+x.p,0);$("#budFill",zone).style.width=clamp(spent/BUD*100,0,100)+"%";$("#budFill",zone).classList.toggle("over",spent>BUD);$("#budTxt",zone).textContent=`£${spent.toFixed(2)} / £25.00`;$("#troList",zone).innerHTML=items.length?items.map(x=>`<div class="trolley-row"><span>${x.n}</span><span style="display:flex;gap:8px;align-items:center"><b>£${x.p.toFixed(2)}</b>${checked?"":`<button data-rm="${x.id}">${icon("x")}</button>`}</span></div>`).join(""):`<span class="muted small">Empty — add items.</span>`;$("#conList",zone).innerHTML=cons().map(c=>`<div class="constraint${c.ok?" met":""}">${icon(c.ok?"check":"x")} ${c.t}</div>`).join("");$$(".shop-item",zone).forEach(el=>{const inC=cart.has(el.dataset.id);el.classList.toggle("in",inC);$(".add-btn",el).innerHTML=inC?`${icon("check")} In trolley`:`${icon("cart")} Add`;$(".add-btn",el).disabled=checked;});}draw();
