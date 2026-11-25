@@ -667,7 +667,34 @@ el.innerHTML=`<div class="photo-hero" style="min-height:230px">${imgHTML("ach","
 <div class="card" style="margin-top:16px"><span class="tag">${icon("medal")} Mission badges</span><div class="badge-grid" style="margin-top:16px">${BADGES.map(b=>`<div class="bslot${S.badges.includes(b.id)?" earned":""}"><div class="bmed">${medalSVG(b.c1,b.c2,b.ic,62,S.badges.includes(b.id))}</div>${b.name}</div>`).join("")}</div></div>
 <div class="card" style="margin-top:16px"><span class="tag">${icon("star")} Special achievements</span><div style="margin-top:16px">${ACH.map(a=>`<div class="ach-row${S.ach.includes(a.id)?" earned":""}"><span class="aic">${icon(a.ic)}</span><div><b>${a.name}</b><span class="small muted">${a.desc}</span></div>${S.ach.includes(a.id)?`<span style="margin-left:auto;color:var(--ok)">${icon("check")}</span>`:`<span class="small muted" style="margin-left:auto">+25 XP</span>`}</div>`).join("")}</div></div>`;}
 /* ================= SOURCE MEDIA & CLASSROOM ACTIVITIES ================= */
-function renderMediaStudio(el){el.innerHTML='';}
+function renderMediaStudio(el){
+const base="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/";
+const audio=[
+["Student’s Book · Reading Text 3A","audio/Insight2e_Preint_SB_Reading_Text_3A.mp3"],
+["Student’s Book · Reading Text 3D","audio/Insight2e_Preint_SB_Reading_Text_3D.mp3"],
+["Student’s Book · Track 3.1","audio/Insight2e_Preint_SB_Track_3.1.mp3"],
+["Student’s Book · Track 3.2","audio/Insight2e_Preint_SB_Track_3.2.mp3"],
+["Student’s Book · Track 3.3","audio/Insight2e_Preint_SB_Track_3.3.mp3"],
+["Student’s Book · Track 3.4","audio/Insight2e_Preint_SB_Track_3.4.mp3"],
+["Student’s Book · Track 3.5","audio/Insight2e_Preint_SB_Track_3.5.mp3"],
+["Workbook · Reading Text Unit 3","audio/Insight2e_Preint_WB_Reading_Text_Unit_3.mp3"],
+["Workbook · Track 3.01","audio/Insight2e_Preint_WB_Track_3.01.mp3"],
+["Skills Test · Track 04 · Grow Your Own","audio/Insight_Preint_Skills_Unit3_Track04.mp3"]
+];
+const docs=[
+["Student’s Book · Spoiled for Choice","Core reading, listening, vocabulary and speaking sequence."],
+["Workbook · Spoiled for Choice","Grammar practice, Healthy Eating Questionnaire, Fad Diets reading and writing tasks."],
+["Teacher’s Guide","Unit map, lesson guidance, answer keys and teaching notes."],
+["Communication Worksheet 3A","Your plate, our planet · pair vocabulary task."],
+["Communication Worksheet 3B","Shopping lists · containers and quantifiers."],
+["Communication Worksheet 3C","Going out · invitations and responses."],
+["Grammar Reference Practice · Unit 3","Additional grammar reference and practice."],
+["Wordlist · pages 3–4","Unit vocabulary and reference."],
+["Documentary Video Worksheet · Unit 3","Viewing tasks for Food in the UK."],
+["Global Skills Video Worksheet · Unit 3","Presentation structure and viewing task."]
+];
+el.innerHTML='<div class="photo-hero" style="min-height:210px">'+imgHTML("market","Unit 3 media library","Original course recordings and source materials.","book",false)+'<div class="veil"></div><div class="ph-content"><div class="kicker">Unit 3 · Spoiled for Choice</div><h1>Source Library</h1><p style="max-width:680px;color:#D9E4DC">Original recordings, video and the full course-material index. Media starts only when you press Play.</p></div></div><div class="card" style="margin-top:16px"><span class="tag acc">Documentary</span><h2>Food in the UK</h2><p class="muted small">Original Unit 3 documentary video. Use the Documentary Video Worksheet alongside the film.</p><video controls preload="metadata" playsinline style="width:100%;max-height:420px;border-radius:14px;background:#172c25" src="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/video/food-in-the-uk.mp4"></video></div><div class="card" style="margin-top:16px"><span class="tag acc">Global Skills</span><h2>Structuring a Presentation</h2><p class="muted small">The original Global Skills 3 video is present in the teacher’s source folder. It is not yet hosted in the public media repository, so I have not inserted a broken player. The video file must be uploaded to a web-accessible media location before it can play here.</p><div class="resource-note">Source file: Insight2e_Preint_Global_Skills3_Video.mp4</div></div><div class="card" style="margin-top:16px"><span class="tag acc">Original audio</span><h2>Student’s Book · Workbook · Skills Test</h2><p class="muted small">All tracks are manual-play controls. No autoplay and no synthetic voice-over.</p><div class="audio-list">'+audio.map(a=>'<div class="audio-row"><b>'+a[0]+'</b><audio controls preload="none" src="'+base+a[1]+'">Audio playback is not supported.</audio></div>').join("")+'</div></div><div class="card" style="margin-top:16px"><span class="tag acc">Course documents · source index</span><h2>Materials used in this module</h2><div class="resource-doc-grid">'+docs.map((d,i)=>'<article class="resource-doc"><b>'+d[0]+'</b><p>'+d[1]+'</p><span class="small muted">Source file indexed · original content is used in the related learning tasks where available</span></article>').join("")+'</div></div>';
+}
 function renderActivities(el){
 const qs=["What did you eat yesterday?","Are you a good cook?","What is your speciality?","What is your favourite fruit?","What is a typical dish from your country or family?","Who cooks at home?","Which restaurant styles have you tried?","How much tea or coffee do you drink?","Have you tried Indian, Japanese or Greek food?","What is your biggest meal?","How much do you spend on food?","What do you eat for breakfast?","Do you eat free-range eggs?","How often do you eat out?","Where do you buy food?","Do you eat a lot of chocolate?"];
 const profiles=[
