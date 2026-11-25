@@ -7,7 +7,11 @@ S.fcResumeRoute=S.fcResumeRoute||null;
 
 /* Browser preview progress, while preserving SCORM as the primary LMS store. */
 const FKEY="food_choice_academy_preview_v1";
-if(!LMS.ok){
+const FRESH_PREVIEW=!LMS.ok&&new URLSearchParams(window.location.search).get("preview")==="reset";
+if(FRESH_PREVIEW){
+ try{localStorage.removeItem(FKEY);}catch(e){}
+ S=defaultState();S.route={name:"start"};S.started=false;S.name="";
+}else if(!LMS.ok){
  try{
   const saved=localStorage.getItem(FKEY);
   if(saved){const parsed=JSON.parse(saved);S=Object.assign(S,parsed);S.writingPortfolio=Array.isArray(S.writingPortfolio)?S.writingPortfolio:[];}
@@ -16,7 +20,7 @@ if(!LMS.ok){
 const fcaSaveBase=save;
 save=function(){
  fcaSaveBase();
- if(!LMS.ok){try{localStorage.setItem(FKEY,JSON.stringify(S));}catch(e){}}
+ if(!LMS.ok&&!FRESH_PREVIEW){try{localStorage.setItem(FKEY,JSON.stringify(S));}catch(e){}}
 };
 
 /* Resume at the exact unfinished step, not merely at the mission's first screen. */
@@ -317,7 +321,7 @@ function fcaSaveLearner(){
   LMS.set("cmi.core.lesson_location",JSON.stringify(S.route||{name:"missions"}));
   LMS.commit();
  }catch(e){}}
- else{try{localStorage.setItem(FKEY,JSON.stringify(S));}catch(e){}}
+ else if(!FRESH_PREVIEW){try{localStorage.setItem(FKEY,JSON.stringify(S));}catch(e){}}
 }
 renderStart=function(el){
  if(S.name){
@@ -343,5 +347,11 @@ renderBrief=function(el){
 const fcaSaveWithIdentity=save;
 save=function(){fcaSaveWithIdentity();if(LMS.ok){try{LMS.set("cmi.core.lesson_location",JSON.stringify(S.route||{}));}catch(e){}}};
 
+if(FRESH_PREVIEW){
+ document.body.classList.add("fca-fresh-preview");
+ const bar=document.createElement("div");bar.className="fca-preview-banner";
+ bar.innerHTML="<b>TEACHER PREVIEW</b><span>Fresh session · progress is temporary · refresh to restart from the beginning</span>";
+ document.body.insertBefore(bar,document.body.firstChild);
+}
 App.go({name:"start"});updateTopbar();
 })();
