@@ -207,10 +207,7 @@ const fcaCrosswordStep={
   zone.innerHTML=communicativeActivityMarkup();
   $("#fcaSubmitComm",zone).addEventListener("click",()=>{
    const field=$("#fcaCommResponse",zone),value=field.value.trim(),feedback=$("#fcaCommFeedback",zone);
-   const words=value.toLowerCase();
-   const used=fcaCommunicativeWords.filter(w=>words.includes(w.term.toLowerCase()));
    if(value.split(/\s+/).filter(Boolean).length<20){feedback.textContent="Add more detail: explain at least three expressions in your own words and identify each as a noun or a verb.";return;}
-   if(used.length<2){feedback.textContent="Make sure your notes refer to at least two expressions from Set A or Set B. Explain their meanings rather than copying the target words.";return;}
    const log=[{q:"Pair vocabulary challenge · explain without saying the word",user:value,ok:true,focus:"Use your own explanation, let your partner guess, and identify whether each target expression is a noun or a verb."}];
    completeTask("3a-crossword",{score:1,max:1,errors:0,xp:10,log},zone);
    const entry={id:"3a-crossword-pair-notes",route:"Mission 3A · Your Plate, Our Planet",prompt:"Pair vocabulary challenge · explain without saying the word",text:value,analysis:analyseWriting(value,"Food vocabulary explanations"),updatedAt:new Date().toISOString()};
