@@ -1009,27 +1009,27 @@ return "Use the writing checklist to review the purpose, required details and fo
 function skillSaveV13(){save();}
 function skillResultsKeyV13(form,part){return "skills-"+form.toLowerCase()+"-"+part;}
 function renderSkillPartV13(form,part){
-var cfg=SKILLS3_V13[form][part],body="";
-var state=S.skillAnswers||{};if(!state[form])state[form]={};if(!state[form][part])state[form][part]={};
-var saved=state[form][part],id=skillResultsKeyV13(form,part),prior=S.results[id],outcome="";
-if(prior)outcome='<div class="skills-result"><b>Recorded:</b> '+(prior.bestScore==null?prior.score:prior.bestScore)+' / '+prior.max+' best score. Attempts to revisit: '+(prior.errors||0)+'. Use the prompts below to review the source or language point.</div>';
-if(cfg.kind==="dialogue"){
-body='<p class="muted small">Choose the sentence that completes each numbered gap. All five gaps must be filled before you check.</p><div class="skills-dialogue">';
-cfg.lines.forEach(function(line){body+='<div class="skills-line"'+(line[2]?' data-st-item="'+(line[2]-1)+'"':'')+'><b>'+esc(line[0])+'</b><span>'+esc(line[1]||"")+'</span>';if(line[2])body+='<select data-st-value="'+(line[2]-1)+'"><option value="">Choose a sentence…</option>'+cfg.choices.map(function(c){return '<option value="'+esc(c[0])+'" '+(saved[line[2]-1]===c[0]?"selected":"")+'>'+esc(c)+'</option>';}).join("")+'</select>';if(line[3])body+='<span>'+esc(line[3])+'</span>';if(line[2])body+='<div class="skills-item-hint" hidden>'+esc(skillHintV13(form,part,line[2]-1))+'</div>';body+='</div>';});body+='</div>';
-}else if(cfg.kind==="tf"){
-body='<div class="skills-statement-list">';
-cfg.items.forEach(function(q,i){var ok=prior&&prior.firstLog&&prior.firstLog[i]?prior.firstLog[i].ok:null;body+='<div class="skills-item'+(ok===true?" is-right":ok===false?" is-revisit":"")+'" data-st-item="'+i+'"><div class="skills-question"><b>'+String(i+1).padStart(2,"0")+'</b><span>'+esc(q)+'</span></div><select data-st-value="'+i+'"><option value="">Choose…</option><option value="T" '+(saved[i]==="T"?"selected":"")+'>True</option><option value="F" '+(saved[i]==="F"?"selected":"")+'>False</option></select><div class="skills-item-hint">'+esc(skillHintV13(form,part,i))+'</div></div>';});
-body+='</div>';
-}else if(cfg.kind==="choice"){
-body='<p class="muted small">Choose the option that completes each sentence. Use the grammar clue, not guesswork.</p><div class="skills-statement-list">';
-cfg.items.forEach(function(q,i){body+='<div class="skills-item" data-st-item="'+i+'"><div class="skills-question"><b>'+String(i+1).padStart(2,"0")+'</b><span>'+esc(q[0])+'</span></div><select data-st-value="'+i+'"><option value="">Choose…</option>'+q.slice(1).map(function(a){return '<option value="'+esc(a)+'" '+(saved[i]===a?"selected":"")+'>'+esc(a)+'</option>';}).join("")+'</select><div class="skills-item-hint">'+esc(skillHintV13(form,part,i))+'</div></div>';});
-body+='</div>';
-}else{
-body='<div class="skills-writing-prompt"><span class="tag acc">Task</span><p>'+esc(cfg.prompt)+'</p></div><label class="skills-writing-label">Your draft<textarea data-st-draft rows="10" placeholder="Write your note or notice here…">'+esc(saved.draft||"")+'</textarea></label><h3>Self-assessment · 0–3 points for each criterion</h3><p class="small muted">0 = not yet included · 1 = partly there · 2 = clear · 3 = complete and easy to understand</p><div class="skills-rubric">'+cfg.criteria.map(function(c,i){return '<label class="skills-rubric-row"><span>'+esc(c)+'</span><select data-st-rubric="'+i+'"><option value="">Rate…</option>'+[0,1,2,3].map(function(n){return '<option value="'+n+'" '+(String(saved["r"+i])===String(n)?"selected":"")+'>'+n+'</option>';}).join("")+'</select></label>';}).join("")+'</div>';
+var cfg=SKILLS3_V13.A[part],body="",saved=(S.skillAnswers&&S.skillAnswers.A&&S.skillAnswers.A[part])||{},idx=(S.skillIndexByPart&&S.skillIndexByPart[part])||0,prior=S.results[skillResultsKeyV13("A",part)];
+if(cfg.kind==="writing"){
+body='<div class="skills-writing-prompt"><span class="tag acc">Task</span><p>'+esc(cfg.prompt)+'</p></div><label class="skills-writing-label">Your draft<textarea data-st-draft rows="8" placeholder="Write your note or notice here…">'+esc(saved.draft||"")+'</textarea></label><h3>Self-assessment · 0–3 points</h3><p class="small muted">0 = not yet included · 1 = partly there · 2 = clear · 3 = complete and easy to understand</p><div class="skills-rubric">'+cfg.criteria.map(function(x,i){return '<label class="skills-rubric-row"><span>'+esc(x)+'</span><select data-st-rubric="'+i+'"><option value="">Rate…</option>'+[0,1,2,3].map(function(n){return '<option value="'+n+'" '+(String(saved["r"+i])===String(n)?"selected":"")+'>'+n+'</option>';}).join("")+'</select></label>';}).join("")+'</div>';
+return '<div class="skills-part-head"><div><span class="tag">'+SKILLS_PART_LABELS_V13[part]+'</span><h2>'+cfg.title+'</h2></div></div>'+body+'<div class="skills-submit-row"><span class="skills-feedback" data-st-feedback>Draft your response and rate each criterion.</span><button class="btn btn-gold" data-st-check="'+part+'">Save draft & self-assessment</button></div>';
 }
-var buttonText=cfg.kind==="writing"?(prior?"Update self-assessment":"Save draft & self-assessment"):(prior?"Check again":"Check responses");
-var defaultFeedback=cfg.kind==="writing"?"Draft your response, then rate each item against the checklist. This is a self-check, not an automatic essay score.":"Your first check will be recorded. If you miss an item, the coach will point you back to a clue.";
-return '<div class="skills-part-head"><div><span class="tag">'+SKILLS_PART_LABELS_V13[part]+'</span><h2>'+cfg.title+'</h2></div>'+outcome+'</div>'+((part==="reading")?'<div class="skills-reading-brief"><h3>Reading brief</h3><p>Okinawa is an island group south of Japan. The text compares life expectancy there with the USA, describes a locally produced traditional diet and reports differences in heart disease. It also contrasts older food habits with modern choices among teenagers, then considers what that change may mean for future generations. Use the passage in the source material for evidence; this summary is only a reminder of its structure.</p></div>':"")+body+'<div class="skills-submit-row"><span class="skills-feedback" data-st-feedback role="status">'+defaultFeedback+'</span><button class="btn btn-gold" data-st-check="'+part+'">'+icon("check")+" "+buttonText+'</button></div>';
+var total=cfg.kind==="dialogue"?cfg.correct.length:cfg.items.length;
+if(prior&&prior.done)idx=total;
+if(idx>=total)return '<div class="skills-result"><b>Section complete</b><p>Recorded: '+prior.score+'/'+prior.max+'. You can revisit this section from the tabs.</p><button class="btn btn-ghost" data-st-restart="'+part+'">Review from the beginning</button></div>';
+var prompt="",choices=[];
+if(cfg.kind==="dialogue"){
+var line=cfg.lines.find(function(x){return x[2]===idx+1;});
+prompt=line?line[0]+": "+(line[1]||""):"Complete gap "+(idx+1)+".";
+choices=cfg.choices.map(function(x){var letter=x.charAt(0);return {value:letter,label:x.replace(/^[A-E]\s*[·.]\s*/,"")};});
+body='<div class="skills-chat-preview">'+cfg.lines.map(function(line){var gap=line[2],filled=gap&&saved[gap-1]?cfg.choices.find(function(x){return x.charAt(0)===saved[gap-1];})?.replace(/^[A-E]\s*[·.]\s*/,""):"";return '<div class="skills-chat-line"><div><b>'+esc(line[0])+'</b><span>'+(gap?(filled?esc(filled):'<span class="gap">Gap '+gap+'</span>'):esc(line[1]||""))+'</span>'+(line[3]?'<p>'+esc(line[3])+'</p>':"")+'</div></div>';}).join("")+'</div>';
+}else if(cfg.kind==="tf"){
+prompt=cfg.items[idx];choices=[{value:"T",label:"True"},{value:"F",label:"False"}];
+}else{
+prompt=cfg.items[idx][0];choices=cfg.items[idx].slice(1).map(function(x){return {value:x,label:x};});
+}
+var hint=skillHintV13("A",part,idx);
+return '<div class="progress-line"><i style="width:'+(idx/total*100)+'%"></i></div><div class="skills-part-head"><div><span class="tag">'+SKILLS_PART_LABELS_V13[part]+'</span><h2>'+cfg.title+'</h2></div><span class="small muted">Question '+(idx+1)+' / '+total+'</span></div>'+((part==="reading")?'<div class="skills-reading-brief">'+imgHTML("japan","Okinawa, Japan","A subtropical island group in southern Japan.","globe",false)+'<h3>Reading · The healthy people of Okinawa</h3><p>Read the passage carefully. Use details from the text as evidence; the questions will appear one at a time.</p></div>':"")+body+'<div class="qcard"><div class="qtext">'+esc(prompt)+'</div><div class="skills-choice-stack">'+choices.map(function(x){return '<button class="btn btn-ghost" data-st-choice="'+esc(x.value)+'">'+esc(x.label)+'</button>';}).join("")+'</div><div class="fad-feedback" data-st-feedback aria-live="polite">Choose one response. You can retry after a hint.</div><p class="small muted">Progress is saved as you work through this section.</p></div>';
 }
 function renderSkillsTestPanelV13(el){
 var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
@@ -1044,36 +1044,22 @@ var fbtn=e.target.closest("[data-st-form]");if(fbtn){S.skillForm=fbtn.dataset.st
 var pbtn=e.target.closest("[data-st-part]");if(pbtn){S.skillPart=pbtn.dataset.stPart;save();renderSkillsTestPanelV13(el);return;}
 var check=e.target.closest("[data-st-check]");if(check){checkSkillPartV13(el,check.dataset.stCheck,e);return;}
 });
-}
-function checkSkillPartV13(el,part,event){
-var form=S.skillForm==="B"?"B":"A",cfg=SKILLS3_V13[form][part],root=$("#a-skills",el),id=skillResultsKeyV13(form,part),feedback=$("[data-st-feedback]",root);
-if(cfg.kind==="writing"){
-var draft=$("[data-st-draft]",root).value.trim(),ratings=[].slice.call(root.querySelectorAll("[data-st-rubric]"));
-if(!draft){feedback.textContent="Write a draft first. The coach will help you check whether the required details are present.";return;}
-if(ratings.some(function(x){return x.value==="";})){feedback.textContent="Rate each criterion from 0 to 3 before saving your self-assessment.";return;}
-var score=ratings.reduce(function(n,x){return n+Number(x.value);},0),old=S.results[id],rec={score:score,max:15,errors:0,done:true,selfAssessment:true,bestScore:Math.max(old&&old.bestScore||0,score),attempts:(old&&old.attempts||0)+1};
-S.results[id]=rec;S.logs[id]=[{q:"Writing self-assessment",user:"Draft saved; rubric "+score+"/15",ok:true,focus:"Review the task checklist and revise any missing detail."}];save();
-feedback.textContent="Draft and self-assessment saved: "+score+"/15. Review the itemised checklist before you revise.";renderSkillsTestPanelV13(el);return;
-}
-var fields=[].slice.call(root.querySelectorAll("[data-st-value]")),cfgExpected=cfg.correct;
-if(fields.some(function(x){return !x.value;})){feedback.textContent="Complete every item in this section before checking. Your current choices have been saved.";return;}
-var first=!S.results[id],score=0,err=0,log=[];
-fields.forEach(function(field,i){
-var val=field.value,ok=cfg.kind==="dialogue"?val===cfgExpected[i]:cfg.kind==="tf"?val===cfgExpected[i]:val===cfgExpected[i];
-if(ok)score++;else err++;
-log.push({q:(cfg.kind==="dialogue"?"Dialogue gap "+(i+1):cfg.kind==="tf"?cfg.items[i]:cfg.items[i][0]),user:val,ok:ok,focus:skillHintV13(form,part,i)});
-noteAnswer(ok,event,10);
-var row=field.closest("[data-st-item]");
-if(row){row.classList.toggle("is-right",ok);row.classList.toggle("is-revisit",!ok);var hint=$(".skills-item-hint",row);if(hint)hint.hidden=ok;}
+}function renderSkillsTestPanelV13(el){
+var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
+if(!S.skillAnswers)S.skillAnswers={A:{}};
+if(!S.skillAnswers.A)S.skillAnswers.A={};
+if(!S.skillIndexByPart)S.skillIndexByPart={};
+var part=S.skillPart||"everyday";if(!SKILLS_PARTS_V13.includes(part))part="everyday";
+holder.innerHTML='<div class="card skills-test-card"><div class="skills-test-intro"><div><span class="tag acc">Integrated assessment</span><h2>Skills Test · Unit 3</h2><p>One assessment version. Listen to Track 04, read the adapted Okinawa passage, and complete each task one question at a time. Feedback points to the source without revealing answer keys.</p></div></div><div class="skills-part-tabs">'+SKILLS_PARTS_V13.map(function(k){return '<button data-st-part="'+k+'" class="'+(k===part?"active":"")+'">'+SKILLS_PART_LABELS_V13[k]+'</button>';}).join("")+'</div><div id="skillsPartBody">'+renderSkillPartV13("A",part)+'</div></div>';
+var root=$("#a-skills",el);
+root.addEventListener("input",function(e){var t=e.target;if(!t.matches("[data-st-draft],[data-st-rubric]"))return;if(!S.skillAnswers.A[part])S.skillAnswers.A[part]={};if(t.hasAttribute("data-st-draft"))S.skillAnswers.A[part].draft=t.value;else S.skillAnswers.A[part]["r"+t.dataset.stRubric]=t.value;save();});
+root.addEventListener("change",function(e){var t=e.target;if(!t.matches("[data-st-draft],[data-st-rubric]"))return;if(!S.skillAnswers.A[part])S.skillAnswers.A[part]={};if(t.hasAttribute("data-st-draft"))S.skillAnswers.A[part].draft=t.value;else S.skillAnswers.A[part]["r"+t.dataset.stRubric]=t.value;save();});
+root.addEventListener("click",function(e){
+var pbtn=e.target.closest("[data-st-part]");if(pbtn){S.skillPart=pbtn.dataset.stPart;save();renderSkillsTestPanelV13(el);return;}
+var restart=e.target.closest("[data-st-restart]");if(restart){delete S.results[skillResultsKeyV13("A",restart.dataset.stRestart)];delete S.logs[skillResultsKeyV13("A",restart.dataset.stRestart)];S.skillIndexByPart[restart.dataset.stRestart]=0;S.skillAnswers.A[restart.dataset.stRestart]={};save();renderSkillsTestPanelV13(el);return;}
+var choice=e.target.closest("[data-st-choice]");if(choice){checkSkillPartV13(el,part,e,choice.dataset.stChoice);return;}
+var check=e.target.closest("[data-st-check]");if(check){checkSkillPartV13(el,check.dataset.stCheck,e,null);return;}
 });
-var old=S.results[id],best=Math.max(old&&old.bestScore||0,score),attempts=(old&&old.attempts||0)+1;
-S.results[id]={score:score,max:fields.length,errors:first?err:(old.errors||0),done:true,bestScore:best,attempts:attempts,xp:first?score*10:0};
-if(first)S.logs[id]=log;else S.logs[id]=(S.logs[id]||[]).concat(log);
-if(first&&score)addXP(score*10);
-save();
-feedback.textContent=score+"/"+fields.length+" correct on this attempt. "+(err?"Review the highlighted prompts and the source or rule, then try again.":"Good evidence reading. The response has been recorded.");
-var prior=$("[data-st-check='"+part+"']",root);if(prior)prior.textContent=prior.textContent.replace("Check responses","Check again");
-var wrap=$(".skills-part-head",root);if(wrap){var status=$(".skills-result",wrap);if(!status){status=document.createElement("div");status.className="skills-result";wrap.appendChild(status);}status.innerHTML="<b>Recorded:</b> "+best+" / "+fields.length+" best score. First-check items to revisit: "+(S.results[id].errors||0)+".";}
 }
 const renderActivitiesBaseV13=renderActivities;
 renderActivities=function(el){renderActivitiesBaseV13(el);};
