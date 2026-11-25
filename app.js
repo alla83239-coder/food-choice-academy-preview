@@ -1269,19 +1269,41 @@ const PREVIEW_MODE=new URLSearchParams(window.location.search).get("preview")===
 /* ================= FOOD CHOICE ACADEMY · 12-MISSION JOURNEY =================
    The original five source chapters and all task engines remain intact.
    This layer reorganises access into twelve learner-facing missions. */
+/* Food Choice Academy · Mission 3B project brief and missing Workbook context guard */
+const FC_MISSION_3B_PROJECT = {
+ title:"Healthy & Sustainable School Canteen",
+ audience:"Teenagers aged 15–18",
+ deliverables:[
+  "Nutrition needs report: energy, protein, fat and carbohydrate requirements, with age, sex and activity differences clearly acknowledged.",
+  "Food comparison: nutrient contribution, food group, affordability, seasonality and evidence quality.",
+  "Carbon footprint comparison: production, processing, packaging, transport, storage and food waste.",
+  "Balanced menu: meals, snacks and drinks with transparent nutrition and cost estimates.",
+  "Procurement plan: quantities, supplier, origin, unit price, packaging, delivery and footprint evidence.",
+  "Canteen concept: layout, equipment, service flow, food safety responsibilities and staffing assumptions.",
+  "Vending machine plan: machine type, product range, price, storage needs, allergen information, refill schedule and waste plan.",
+  "Launch plan and a detailed investor-style project presentation."
+ ],
+ evidenceRules:[
+  "Do not invent Workbook source passages or claim that generated copy is an original Workbook extract.",
+  "Show the complete supplied reading before asking comprehension questions or gap-fill questions.",
+  "When an original source is unavailable, label any newly written reading as an Academy-created text.",
+  "Do not use one fixed macronutrient ratio or one calorie target for every teenager; require an evidence-based explanation of variation.",
+  "Treat carbon-footprint figures as source-dependent estimates; display source, unit, boundary and date."
+ ]
+};
 const FOOD_CHOICE_MISSIONS = [
  {title:"The Mystery",subtitle:"What connects these three pictures?",chapter:"Launch",image:"food",target:null,brief:"Study the three images. What do they have in common? What food-choice problem might connect them?"},
  {title:"The Real Cost",subtitle:"Read the evidence behind everyday food",chapter:"3A · The Real Cost of Food",image:"l3a",target:{l:0,s:0},brief:"Investigate packaging, food waste and the environmental cost hidden behind ordinary food choices.",requires:["3a-vocab","3a-read"]},
  {title:"Food Footprints",subtitle:"Follow a product from farm to table",chapter:"3A · Life Cycle",image:"market",target:{l:0,s:2},brief:"Trace the life cycle of orange juice and decide which packaging policy is defensible.",requires:["3a-cycle"],decision:"pack"},
- {title:"Food for Thought",subtitle:"Understand real eating habits",chapter:"3B · What’s on the Menu?",image:"l3b",target:{l:1,s:0},brief:"Compare the clients’ food profiles and build a nutrition report from the information they provide.",requires:["3b-profiles","3b-odd","3b-health-questionnaire","3b-client-interview"]},
- {title:"Determiner Lab",subtitle:"Make quantities clear",chapter:"3B · Language Focus",image:"grammar",target:{l:1,s:2},brief:"Use countable and uncountable nouns, quantifiers and questions accurately in food-related situations.",requires:["3b-gaps","3b-expert","3b-athlete"]},
- {title:"Teenagers in the UK",subtitle:"Question claims and check evidence",chapter:"3B · Critical Reading",image:"berries",target:{l:1,s:5},brief:"Read the complete Workbook text about fad diets. Separate claims from evidence and decide what the text actually supports.",requires:["3b-fad","3b-fad-table","3b-fad-vocab","3b-plan"]},
- {title:"Vending Machine Challenge",subtitle:"Listen, compare and decide",chapter:"3C · Consumer Choices",image:"l3c",target:{l:2,s:0},brief:"Use listening evidence to compare vending-machine experiences and respond to a supplier offer.",requires:["3c-keys","3c-stat"],decision:"vend"},
+ {title:"Teen Nutrition Research",subtitle:"Establish evidence-based needs for ages 15–18",chapter:"3B · Nutrition Research",image:"l3b",target:{l:1,s:0},brief:"Investigate adolescent energy needs, macronutrients, food groups and practical healthy eating. Record the evidence your canteen menu will need.",requires:["3b-profiles","3b-odd","3b-health-questionnaire","3b-client-interview"]},
+ {title:"Nutrition Evidence & Food Choices",subtitle:"Compare foods by nutrients, function and suitability",chapter:"3B · Nutrition Evidence",image:"grammar",target:{l:1,s:2},brief:"Use food and nutrition evidence to compare ingredients, identify useful sources of protein, fats and carbohydrates, and justify choices for a teen canteen.",requires:["3b-gaps","3b-expert","3b-athlete"]},
+ {title:"Menu Design & Healthy Choices",subtitle:"Turn nutrition evidence into a practical menu",chapter:"3B · Menu Planning",image:"berries",target:{l:1,s:5},brief:"Translate the research into balanced meal choices for teenagers. Compare food groups, portions, variety, affordability and the needs of different students.",requires:["3b-fad","3b-fad-table","3b-fad-vocab","3b-plan"]},
+ {title:"Vending Machine & Smart Procurement",subtitle:"Choose stock, suppliers and a responsible assortment",chapter:"3C · Consumer Choices",image:"l3c",target:{l:2,s:0},brief:"Evaluate the vending-machine proposal, select suitable products, assess supplier terms and plan a healthy, affordable assortment with clear storage and replenishment rules.",requires:["3c-keys","3c-stat"],decision:"vend"},
  {title:"Keep Talking",subtitle:"Negotiate a plan in English",chapter:"3C · Functional Language",image:"chat",target:{l:2,s:2},brief:"Practise indefinite pronouns, invitations, polite refusals and alternative suggestions.",requires:["3c-pro","3c-invite"]},
  {title:"Junk Food Investigation",subtitle:"Read critically and inspect packaging",chapter:"3D · Junk Food Heaven",image:"burger",target:{l:3,s:0},brief:"Analyse the writer’s viewpoint, then build accurate vocabulary for food containers.",requires:["3d-read","3d-cont"]},
  {title:"Grammar Workshop",subtitle:"Add precise information",chapter:"3D · Relative Clauses",image:"grammar",target:{l:3,s:2},brief:"Use relative pronouns and adverbs to describe people, products, places, ownership and time.",requires:["3d-rel","3d-cook"]},
  {title:"Message Studio",subtitle:"Write for a real audience",chapter:"3E · Spread the Word",image:"l3e",target:{l:4,s:0},brief:"Use abbreviations and concise note style, then respond to a message with a clear plan.",requires:["3e-abbr","3e-note","3e-chat"]},
- {title:"Final Project Pitch",subtitle:"Present the Smart Food Choice Project",chapter:"Project Portfolio",image:"final",target:{l:4,s:2},brief:"Bring together the evidence, menu decisions and launch communication. Present a practical Smart Food Choice proposal.",requires:["3d-shop","3e-poster"]}
+ {title:"Canteen Launch & Project Pitch",subtitle:"Open the canteen and defend the complete business proposal",chapter:"Project Portfolio",image:"final",target:{l:4,s:2},brief:"Present the complete school canteen proposal: nutrition research, carbon footprint, menu, supplier comparison, shopping list, budget, canteen layout, vending-machine assortment, opening plan and expected impact.",requires:["3d-shop","3e-poster"]}
 ];
 function fcMissionDone(i){
  const m=FOOD_CHOICE_MISSIONS[i];
