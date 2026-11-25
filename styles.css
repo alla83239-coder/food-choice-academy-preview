@@ -870,3 +870,10 @@ body.no-bar #app{padding:0;max-width:none}
 .skills-choice-stack{display:grid;grid-template-columns:1fr;gap:9px;margin:12px 0}
 .skills-choice-stack button{width:100%;text-align:left;white-space:normal;line-height:1.4;padding:12px 14px}
 @media(max-width:700px){.resource-doc-grid{grid-template-columns:1fr}.audio-row{grid-template-columns:1fr}}
+
+.veg-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.veg-choice-row .veg-option{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;border:1px solid var(--goldLine);border-radius:14px;background:#fffdf8;font-weight:700}
+.veg-choice-row .veg-option img{width:100%;height:104px;object-fit:cover;border-radius:10px}
+.veg-choice-row .veg-option span{text-transform:capitalize}
+.veg-questions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+@media(max-width:640px){.veg-choice-row{grid-template-columns:repeat(2,minmax(0,1fr))}.veg-choice-row .veg-option img{height:88px}.veg-questions{grid-template-columns:1fr}}
