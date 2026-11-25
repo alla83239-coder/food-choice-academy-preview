@@ -499,6 +499,80 @@ zone.addEventListener("change",e=>{const f=e.target.dataset.f;if(f){cfg[f]=e.tar
 zone.addEventListener("click",e=>{const t=e.target.closest(".tgl");if(t&&!zone.dataset.done){const k=t.dataset.t;cfg[k]=!cfg[k];t.classList.toggle("on",cfg[k]);AudioSys.play("click");draw();return;}const p=e.target.closest(".pal");if(p&&!zone.dataset.done){cfg.pal=+p.dataset.p;$$(".pal",zone).forEach(x=>x.classList.toggle("sel",+x.dataset.p===cfg.pal));AudioSys.play("click");draw();}});
 $("#posterGo",zone).addEventListener("click",e=>{if(zone.dataset.done||!valid())return;zone.dataset.done="1";S.poster={...cfg};applyFx({eco:5,health:5,budget:100});const bonus=(cfg.rsvp?5:0)+(cfg.fyi?5:0);const log=[{q:"Announcement checklist",user:"All 6 required elements + design",correct:"what, when, where, why, contact",ok:true,expl:"Charity purpose chosen correctly — +£100 raised."}];$$("select,input,.tgl,.pal",zone).forEach(x=>x.disabled=true);$("#posterGo",zone).disabled=true;noteAnswer(true,e,60);AudioSys.play("badge");completeTask("3e-poster",{score:6,max:6,errors:0,xp:60+bonus,log},zone);});}
 /* ================= LESSONS ================= */
+
+function buildCanteenMenu(zone){
+ const slots=[
+  {id:"breakfast",title:"Breakfast",items:[
+   {id:"oats",name:"Porridge with milk, banana and seeds",img:"breakfast",desc:"Oats, milk, fruit and seeds",tags:["starch","protein","unsaturatedFat"],produce:1,sugar:0},
+   {id:"toast",name:"Wholegrain toast, egg and tomato",img:"eggs",desc:"Wholegrain bread, egg and tomato",tags:["starch","protein"],produce:1,sugar:0},
+   {id:"pastry",name:"Sweet pastry and energy drink",img:"dessert",desc:"A quick option high in free sugars",tags:["starch"],produce:0,sugar:2}
+  ]},
+  {id:"lunch",title:"Lunch",items:[
+   {id:"lentils",name:"Lentil and vegetable curry with brown rice",img:"rice",desc:"Pulses, vegetables and brown rice",tags:["starch","protein","fibre"],produce:2,sugar:0},
+   {id:"chicken",name:"Chicken, roast potatoes and broccoli",img:"veg",desc:"Chicken with potatoes and broccoli",tags:["starch","protein","fibre"],produce:1,sugar:0},
+   {id:"burger",name:"Cheeseburger, fries and cola",img:"burger",desc:"A less balanced, highly processed option",tags:["starch","protein"],produce:0,sugar:1}
+  ]},
+  {id:"snack",title:"Snack",items:[
+   {id:"apple-nuts",name:"Apple and unsalted nuts",img:"berries",desc:"Whole fruit, fibre and unsaturated fat",tags:["unsaturatedFat","fibre"],produce:1,sugar:0},
+   {id:"yoghurt",name:"Plain yoghurt with berries",img:"breakfast",desc:"Plain yoghurt and fresh berries",tags:["protein"],produce:1,sugar:0},
+   {id:"chocolate",name:"Chocolate bar",img:"chocolate",desc:"An occasional treat, not a main snack choice",tags:[],produce:0,sugar:1}
+  ]},
+  {id:"drink",title:"Drink",items:[
+   {id:"water",name:"Water",img:"water",desc:"No free sugars",tags:["unsweetenedDrink"],produce:0,sugar:0},
+   {id:"milk",name:"Plain milk",img:"food",desc:"Protein and calcium; choose unsweetened",tags:["protein","unsweetenedDrink"],produce:0,sugar:0},
+   {id:"juice",name:"Orange juice",img:"orange",desc:"Sugars in fruit juice count as free sugars",tags:[],produce:0,sugar:1},
+   {id:"cola",name:"Cola",img:"cola",desc:"Sugar-sweetened drink",tags:[],produce:0,sugar:1}
+  ]}
+ ];
+ const chosen={...(S.menuPlan&&S.menuPlan.chosen||{})};
+ const savedName=S.menuPlan&&S.menuPlan.name||"";
+ zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Ms Harper · Menu Planner</b><p>Build a one-day sample menu for a school canteen serving teenagers aged 15–18. Choose one option for each part of the day and check your choices against the planning criteria.</p></div></div>'+
+ '<div class="field"><label>Menu name</label><input id="menuPlanName" maxlength="60" placeholder="e.g. The Smart Start Menu" value="'+esc(savedName)+'"></div>'+
+ '<div id="menuPlanSlots">'+slots.map(function(slot){return '<section class="qcard"><h3>'+slot.title+'</h3><div class="fca-option-grid">'+slot.items.map(function(item){return '<button type="button" class="opt menu-plan-choice'+(chosen[slot.id]===item.id?' right':'')+'" data-slot="'+slot.id+'" data-id="'+item.id+'">'+imgHTML(item.img,item.name,item.desc,"food",false)+'<b>'+item.name+'</b><small class="muted">'+item.desc+'</small></button>';}).join("")+'</div></section>';}).join("")+'</div>'+
+ '<div class="card soft"><h3>Menu quality check</h3><div id="menuPlanCriteria"></div><p class="small muted">These checks are a planning aid, not a full nutritional analysis. Portion sizes, nutrients, energy, allergens and costs must be calculated before the menu is approved.</p></div>'+
+ '<div class="footer-bar"><span class="small muted" id="menuPlanProgress">Choose one option in each section.</span><button class="btn btn-gold" id="menuPlanSave" disabled>Save menu to project '+icon("check")+'</button></div>';
+ const criteriaEl=$("#menuPlanCriteria",zone),saveBtn=$("#menuPlanSave",zone),progress=$("#menuPlanProgress",zone);
+ function evaluate(){
+  const chosenFoods=slots.map(function(slot){return slot.items.find(function(item){return item.id===chosen[slot.id];});}).filter(Boolean);
+  const tags=new Set(chosenFoods.reduce(function(all,item){return all.concat(item.tags);},[]));
+  const produce=chosenFoods.reduce(function(total,item){return total+item.produce;},0);
+  const freeSugar=chosenFoods.reduce(function(total,item){return total+item.sugar;},0);
+  const criteria=[
+   {label:"A starchy carbohydrate source is included",ok:tags.has("starch")},
+   {label:"At least one useful protein source is included",ok:tags.has("protein")},
+   {label:"At least two fruit or vegetable portions are included",ok:produce>=2},
+   {label:"A source of unsaturated fat is included",ok:tags.has("unsaturatedFat")},
+   {label:"Water or plain milk is selected as the drink",ok:tags.has("unsweetenedDrink")},
+   {label:"Free-sugar items are limited in this sample menu",ok:freeSugar<=1}
+  ];
+  criteriaEl.innerHTML=criteria.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'x')+' '+c.label+'</div>';}).join("");
+  const count=slots.filter(function(slot){return !!chosen[slot.id];}).length;
+  progress.textContent=count+" / "+slots.length+" sections selected · "+criteria.filter(function(c){return c.ok;}).length+" / "+criteria.length+" checks met";
+  saveBtn.disabled=count!==slots.length||!$("#menuPlanName",zone).value.trim();
+  return {criteria:criteria,foods:chosenFoods,score:criteria.filter(function(c){return c.ok;}).length,produce:produce,freeSugar:freeSugar};
+ }
+ zone.addEventListener("click",function(e){
+  const btn=e.target.closest(".menu-plan-choice");if(!btn)return;
+  chosen[btn.dataset.slot]=btn.dataset.id;
+  $$('.menu-plan-choice[data-slot="'+btn.dataset.slot+'"]',zone).forEach(function(item){item.classList.toggle("right",item===btn);});
+  evaluate();AudioSys.play("click");
+ });
+ $("#menuPlanName",zone).addEventListener("input",evaluate);
+ saveBtn.addEventListener("click",function(e){
+  const result=evaluate();if(saveBtn.disabled)return;
+  const selections={};
+  slots.forEach(function(slot){const item=slot.items.find(function(x){return x.id===chosen[slot.id];});selections[slot.id]=item?item.name:"";});
+  S.menuPlan={name:$("#menuPlanName",zone).value.trim(),chosen:{...chosen},selections:selections,criteria:result.criteria,score:result.score,max:result.criteria.length,createdAt:Date.now()};
+  save();
+  noteAnswer(result.score===result.criteria.length,e,result.score*10);
+  completeTask("3b-plan",{score:result.score,max:result.criteria.length,errors:result.criteria.length-result.score,xp:result.score*10+(result.score===result.criteria.length?20:0),log:result.criteria.map(function(c){return {q:c.label,user:c.ok?"met":"not met",correct:"met",ok:c.ok};})},zone);
+  const outcome=document.createElement("div");outcome.className="outcome";
+  outcome.innerHTML='<span class="tag">'+icon("check")+' Menu saved</span><h3>'+esc(S.menuPlan.name)+'</h3><p>'+Object.values(selections).map(esc).join(" · ")+'</p><p>'+result.score+'/'+result.criteria.length+' planning checks met. Add portion sizes, nutrient calculations, costs and allergen information before final approval.</p>';
+  zone.insertBefore(outcome,zone.firstChild);
+ });
+ evaluate();
+}
+
 const LESSONS=[
 {code:"3A",theme:"3a",img:"l3a",title:"The Real Cost of Food",badge:0,sub:"Reading & Vocabulary • CLIL: Environmental Science",problem:"The canteen throws away <b>66 kg of packaging every week</b> — 93% single-use plastic. Understand the real cost of food before you fix it.",objectives:{content:["Trace the life cycle of a food product","Explain carbon footprint, food miles and packaging waste"],language:["7 compound nouns & adjectives","Reading for specific information","Sequencing a process with present simple verbs"]},quote:{who:"harper",text:"You turned our rubbish into evidence. Now I see where the plastic comes from!"},steps:[
 {tag:"Vocabulary",ic:"book",title:"Eco Vocabulary Lab",task:"3a-vocab",build(b){b.innerHTML=stepShell("Vocabulary","book","Eco Vocabulary Lab","Match the compound words to their definitions. Beat 60 seconds for a bonus achievement!")+taskCard();engMatch($(".task-zone",b),{id:"3a-vocab",pairs:VOC3A,speedAch:true});}},
@@ -569,7 +643,7 @@ const LESSONS=[
 }},
 {tag:"Workbook · Self-assessment",ic:"clipboard-list",title:"Healthy Eating Questionnaire",task:"3b-health-questionnaire",build(b){b.innerHTML=stepShell("Workbook · p. 21","clipboard-list","Healthy Eating Questionnaire","Use How much / How many, answer the six questions honestly, then write about your breakfast.")+`<div class="card"><div class="task-zone"></div></div>`;buildHealthyQuestionnaire($(".task-zone",b));}},
 {tag:"Project Extension",ic:"messages-square",title:"Client Food Survey",task:"3b-client-interview",build(b){b.innerHTML=stepShell("Project Extension","messages-square","Client Food Survey","Interview the three clients and file the information for your nutrition report.")+`<div class="card"><div class="task-zone"></div></div>`;buildSurvey($(".task-zone",b));}},
-{tag:"Case Decision",ic:"heart",title:"Jordan's Health Plan",task:"3b-plan",build(b){b.innerHTML=stepShell("Case Decision","heart","Jordan's Health Plan","Recommend exactly TWO realistic changes for Jordan.")+taskCard();engMulti($(".task-zone",b),{id:"3b-plan",k:2,opts:PLAN3B,hint:"Use the evidence: no vegetables, lots of sugar, lots of sport."});}}
+{tag:"Project Deliverable",ic:"utensils",title:"Build a Balanced Teen Menu",task:"3b-plan",build(b){b.innerHTML=stepShell("Project Deliverable","utensils","Build a Balanced Teen Menu","Create a one-day sample menu for teenagers aged 15–18. Balance starchy foods, useful protein, fruit and vegetables, unsaturated fats and drinks. Explain why your choices are suitable.")+`<div class="card"><div class="task-zone"></div></div>`;buildCanteenMenu($(".task-zone",b));}}
 ]},
 {code:"3C",theme:"3c",img:"l3c",title:"The Vending Machine Challenge",badge:2,sub:"Listening & Functional Language • CLIL: Consumer Choices",problem:"The head teacher wants a <b>vending machine</b>. Four people describe their experience — then a supplier makes an offer you can't ignore.",objectives:{content:["Compare vending machines and their impact on eating habits","Weigh commercial offers against health and sustainability"],language:["Listening for key words","Indefinite pronouns: some-, any-, no-, every-","Inviting, accepting, refusing, re-suggesting"]},quote:{who:"harper",text:"Half healthy snacks and fresh fruit? The machine queue is longer than the canteen queue!"},steps:[
 {tag:"Listening",ic:"ear",title:"Key Words: Four Speakers",task:"3c-keys",build(b){b.innerHTML=stepShell("Listening","ear","Key Words: Four Speakers","Play the original recording, then identify the three key words for each speaker.")+`<div class="fca-audio-panel"><div><span class="tag">Original audio · Student’s Book Track 3.2</span><b>Listen before choosing</b><p class="small muted">Playback is manual. Nothing starts automatically.</p></div><audio controls preload="none" src="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/audio/Insight2e_Preint_SB_Track_3.2.mp3"></audio></div><div class="card"><div class="task-zone"></div></div>`;buildKeywords($(".task-zone",b));}},
