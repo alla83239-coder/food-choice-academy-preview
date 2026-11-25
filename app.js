@@ -395,7 +395,7 @@ function fadReadingStepper(zone){
 }
 function buildFadComparison(b){
  const data=[
-  ["When did it become famous?",["In the 1980s","In 1941","In 1996"],0,["In 1941","In 1996","In the 1980s"],2,["In the 1980s","In 1941","In 1996"],2],
+  ["When did it become famous?",["In the 1980s","In 1941","In 1996"],0,["In 1941","In 1996","In the 1980s"],0,["In the 1980s","In 1941","In 1996"],2],
   ["Who invented it?",["Nobody knows","Stanley Burroughs","Peter D’Adamo"],0,["Nobody knows","Stanley Burroughs","Peter D’Adamo"],1,["Nobody knows","Stanley Burroughs","Peter D’Adamo"],2],
   ["What is its aim?",["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],0,["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],1,["To help you lose weight","A detox to help you become healthy","To choose food by blood type"],2],
   ["How long do you stay on the diet?",["One week","Two weeks","The article doesn't say"],0,["One week","Two weeks","The article doesn't say"],1,["One week","Two weeks","The article doesn't say"],2],
