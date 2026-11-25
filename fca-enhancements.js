@@ -198,7 +198,7 @@ renderFoodChoiceMission=function(el,index){
   const coach=card?.querySelector(".fc-coach");
   if(coach){
    coach.classList.add("fca-mentor-message");
-   coach.insertAdjacentHTML("afterbegin",'<img class="fca-mentor-photo" src="'+PH.harper+'" alt="Miss Harper, the canteen manager" onerror="this.src=\'\'+PH.harper+\'\'">');
+   coach.insertAdjacentHTML("afterbegin",'<img class="fca-mentor-photo" src="'+PH.harper+'" alt="Miss Harper, the canteen manager">');
    const label=coach.querySelector("b");if(label)label.textContent="Miss Harper · Canteen Manager";
    const p=coach.querySelector("p");if(p)p.textContent="Welcome to the team. I asked you here because our canteen needs more than a quick fix. I want you to investigate the evidence, listen to our students and build a food-choice plan that is healthier, fairer and realistic.";
   }
