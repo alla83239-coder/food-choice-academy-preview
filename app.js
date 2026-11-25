@@ -1048,7 +1048,7 @@ var check=e.target.closest("[data-st-check]");if(check){checkSkillPartV13(el,che
 var holder=$("#a-skills",el);if(!holder)return;var clean=holder.cloneNode(false);holder.parentNode.replaceChild(clean,holder);holder=clean;
 if(!S.skillAnswers)S.skillAnswers={A:{}};
 if(!S.skillAnswers.A)S.skillAnswers.A={};
-if(!S.skillIndexByPart)S.skillIndexByPart={};
+if(!S.skillIndexByPart)S.skillIndexByPart={};if(!S.skillRun)S.skillRun={};if(!S.skillRun)S.skillRun={};
 var part=S.skillPart||"everyday";if(!SKILLS_PARTS_V13.includes(part))part="everyday";
 holder.innerHTML='<div class="card skills-test-card"><div class="skills-test-intro"><div><span class="tag acc">Integrated assessment</span><h2>Skills Test · Unit 3</h2><p>One assessment version. Listen to Track 04, read the adapted Okinawa passage, and complete each task one question at a time. Feedback points to the source without revealing answer keys.</p></div></div><div class="skills-part-tabs">'+SKILLS_PARTS_V13.map(function(k){return '<button data-st-part="'+k+'" class="'+(k===part?"active":"")+'">'+SKILLS_PART_LABELS_V13[k]+'</button>';}).join("")+'</div><div id="skillsPartBody">'+renderSkillPartV13("A",part)+'</div></div>';
 var root=$("#a-skills",el);
