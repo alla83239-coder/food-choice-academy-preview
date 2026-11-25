@@ -678,6 +678,73 @@ function buildVendingAssortment(zone){
  evaluate();
 }
 
+
+function buildSmartProcurement(zone){
+ const products=[
+  {id:"beef",name:"Beef (beef herd)",group:"Protein",factor:99.48,price:10.0},
+  {id:"lamb",name:"Lamb and mutton",group:"Protein",factor:39.72,price:12.0},
+  {id:"chicken",name:"Poultry meat",group:"Protein",factor:9.87,price:7.0},
+  {id:"eggs",name:"Eggs",group:"Protein",factor:4.67,price:3.0},
+  {id:"rice",name:"Rice",group:"Carbohydrate",factor:4.45,price:2.5},
+  {id:"tofu",name:"Tofu",group:"Protein",factor:3.16,price:5.0},
+  {id:"peas",name:"Peas and pulses",group:"Protein",factor:0.98,price:2.0},
+  {id:"apples",name:"Apples",group:"Fruit",factor:0.43,price:2.0},
+  {id:"potatoes",name:"Potatoes",group:"Carbohydrate",factor:0.46,price:1.2},
+  {id:"tomatoes",name:"Tomatoes",group:"Vegetable",factor:2.09,price:2.5}
+ ];
+ const previous=S.procurement&&S.procurement.quantities||{};
+ const budget=80;
+ zone.innerHTML='<div class="fca-mission-guide">'+avatar("harper",58)+'<div><b>Ms Harper · Procurement Manager</b><p>Prepare a sample shopping basket for the canteen. Compare cost and greenhouse-gas estimates, then justify your choices against the menu plan.</p></div></div>'+
+ (S.menuPlan?'<div class="card soft"><b>Saved menu reference: '+esc(S.menuPlan.name)+'</b><p class="small muted">'+Object.values(S.menuPlan.selections||{}).map(esc).join(" · ")+'</p></div>':'<div class="gnote"><span>'+icon("info")+'</span><span>Complete the menu-planning task first if you want to compare purchases with a saved menu.</span></div>')+
+ '<div class="card reading"><div class="tag">Smart procurement · Project simulation</div><h3 style="margin:10px 0 8px">Choose quantities for the shopping basket</h3><p>Enter the quantities you expect to buy in grams. The price per kilogram is an illustrative classroom estimate, while the emissions factor is a global food-category average.</p><div class="gnote"><span>'+icon("calculator")+'</span><span><b>Two calculations:</b> estimated cost = quantity (kg) × simulated price per kg. Estimated footprint = quantity (kg) × reference kg CO₂e per kg of food.</span></div></div>'+
+ '<div class="card"><div class="table-scroll"><table class="gtable"><thead><tr><th>Food</th><th>Group</th><th>Price / kg*</th><th>kg CO₂e / kg food</th><th>Quantity (g)</th><th>Cost</th><th>Footprint</th></tr></thead><tbody>'+products.map(function(p){return '<tr><td><b>'+p.name+'</b></td><td>'+p.group+'</td><td>£'+p.price.toFixed(2)+'</td><td>'+p.factor.toFixed(2)+'</td><td><input class="proc-qty" data-id="'+p.id+'" type="number" min="0" max="50000" step="100" value="'+(Number(previous[p.id])||0)+'" style="width:82px" aria-label="Quantity of '+p.name+' in grams"></td><td data-cost="'+p.id+'">£0.00</td><td data-co2="'+p.id+'">0.000</td></tr>';}).join("")+'</tbody></table></div><div class="footer-bar"><b id="procTotal">£0.00 / £'+budget.toFixed(2)+'</b><span class="small muted" id="procFootprint">0.000 kg CO₂e</span></div></div>'+
+ '<div class="card soft"><h3>Procurement checks</h3><div id="procChecks"></div><p class="small muted">* Simulated practice prices, not supplier quotations. Food emissions factors are global averages for 2010, based on Poore and Nemecek (2018), processed by Our World in Data. They do not describe the exact origin, farming method, packaging or delivery of a particular supplier.</p><p><a href="https://ourworldindata.org/grapher/ghg-per-kg-poore?tab=table" target="_blank" rel="noopener">Open the source data and compare categories</a></p></div>'+
+ '<div class="field"><label>Supplier and sourcing note</label><textarea id="procSupplierNote" rows="3" placeholder="Record supplier, region/country of origin, season, packaging, delivery distance and evidence for the footprint.">'+esc(S.procurement&&S.procurement.note||"")+'</textarea></div>'+
+ '<div class="footer-bar"><span class="small muted" id="procFeedback">Add at least four ingredients.</span><button type="button" class="btn btn-gold" id="procSave">Save procurement plan '+icon("check")+'</button></div>';
+ function calculate(){
+  const quantities={},items=[];let cost=0,footprint=0;
+  products.forEach(function(p){
+   const grams=Math.max(0,Number($('.proc-qty[data-id="'+p.id+'"]',zone).value)||0);
+   quantities[p.id]=grams;const kg=grams/1000;const itemCost=kg*p.price,co2=kg*p.factor;cost+=itemCost;footprint+=co2;
+   $('[data-cost="'+p.id+'"]',zone).textContent="£"+itemCost.toFixed(2);
+   $('[data-co2="'+p.id+'"]',zone).textContent=co2.toFixed(3);
+   if(grams>0)items.push({id:p.id,name:p.name,group:p.group,grams:grams,kgCO2e:co2,cost:itemCost,factor:p.factor});
+  });
+  $("#procTotal",zone).textContent="£"+cost.toFixed(2)+" / £"+budget.toFixed(2);
+  $("#procFootprint",zone).textContent=footprint.toFixed(3)+" kg CO₂e";
+  const groups=new Set(items.map(function(x){return x.group;}));
+  const protein=items.some(function(x){return x.group==="Protein";});
+  const plant=items.some(function(x){return x.group==="Fruit"||x.group==="Vegetable"||x.id==="peas"||x.id==="tofu";});
+  const starch=items.some(function(x){return x.group==="Carbohydrate";});
+  const checks=[
+   {label:"At least four food items selected",ok:items.length>=4},
+   {label:"At least one protein source selected",ok:protein},
+   {label:"Fruit, vegetables or pulses included",ok:plant},
+   {label:"A starchy carbohydrate source included",ok:starch},
+   {label:"At least three food groups represented",ok:groups.size>=3},
+   {label:"Basket stays within the £"+budget+" practice budget",ok:cost>0&&cost<=budget}
+  ];
+  $("#procChecks",zone).innerHTML=checks.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'x')+' '+c.label+'</div>';}).join("");
+  $("#procFeedback",zone).textContent=items.length+" products · "+cost.toFixed(2)+" GBP · "+footprint.toFixed(3)+" kg CO₂e";
+  return {quantities:quantities,items:items,cost:cost,footprint:footprint,checks:checks,score:checks.filter(function(c){return c.ok;}).length};
+ }
+ zone.addEventListener("input",function(e){if(e.target.matches(".proc-qty"))calculate();});
+ $("#procSave",zone).addEventListener("click",function(e){
+  const result=calculate();
+  if(result.score!==result.checks.length){toast("Meet all procurement checks before saving the plan.","info");return;}
+  const note=$("#procSupplierNote",zone).value.trim();
+  S.procurement={quantities:result.quantities,items:result.items,cost:result.cost,footprint:result.footprint,note:note,score:result.score,max:result.checks.length,reference:"Poore & Nemecek (2018), via Our World in Data; global averages for 2010.",createdAt:Date.now()};
+  S.trolley={items:result.items.map(function(x){return x.id;}),spent:result.cost,met:result.score};
+  S.carbonBasket={items:result.items,total:result.footprint,unit:"kg CO₂e",reference:S.procurement.reference};
+  save();noteAnswer(true,e,60);
+  completeTask("3d-shop",{score:result.score,max:result.checks.length,errors:0,xp:60,log:result.checks.map(function(c){return {q:c.label,user:c.ok?"met":"not met",correct:"met",ok:c.ok};})},zone);
+  const out=document.createElement("div");out.className="outcome";
+  out.innerHTML='<span class="tag">'+icon("check")+' Procurement plan saved</span><h3>£'+result.cost.toFixed(2)+' · '+result.footprint.toFixed(3)+' kg CO₂e</h3><p>'+result.items.map(function(x){return esc(x.name)+" ("+x.grams+" g)";}).join(" · ")+'</p><p>Next step: validate real supplier prices, origin, packaging and delivery distance before placing an order.</p>';
+  zone.insertBefore(out,zone.firstChild);
+ });
+ calculate();
+}
+
 const LESSONS=[
 {code:"3A",theme:"3a",img:"l3a",title:"The Real Cost of Food",badge:0,sub:"Reading & Vocabulary • CLIL: Environmental Science",problem:"The canteen throws away <b>66 kg of packaging every week</b> — 93% single-use plastic. Understand the real cost of food before you fix it.",objectives:{content:["Trace the life cycle of a food product","Explain carbon footprint, food miles and packaging waste"],language:["7 compound nouns & adjectives","Reading for specific information","Sequencing a process with present simple verbs"]},quote:{who:"harper",text:"You turned our rubbish into evidence. Now I see where the plastic comes from!"},steps:[
 {tag:"Vocabulary",ic:"book",title:"Eco Vocabulary Lab",task:"3a-vocab",build(b){b.innerHTML=stepShell("Vocabulary","book","Eco Vocabulary Lab","Match the compound words to their definitions. Beat 60 seconds for a bonus achievement!")+taskCard();engMatch($(".task-zone",b),{id:"3a-vocab",pairs:VOC3A,speedAch:true});}},
@@ -764,7 +831,7 @@ const LESSONS=[
 {tag:"Vocabulary",ic:"cart",title:"Containers",task:"3d-cont",build(b){b.innerHTML=stepShell("Vocabulary","cart","Containers","What's inside? Match each container to its contents.")+taskCard();engMatch($(".task-zone",b),{id:"3d-cont",pairs:CONT3D});}},
 {tag:"Grammar",ic:"grammar",title:"Relative Pronouns & Adverbs",task:"3d-rel",build(b){b.innerHTML=stepShell("Grammar","grammar","Relative Pronouns & Adverbs","who • which • whose • where • when — add the missing information.")+`<div class="gnote" style="margin-bottom:14px">${icon("bulb")}<span><b>Rule:</b> who/that → people, which/that → things, whose → possession, where → places, when → times. You can leave out who/that/which before a noun/pronoun — never before a verb.</span></div>`+taskCard();engGaps($(".task-zone",b),{id:"3d-rel",items:REL3D});}},
 {tag:"Functional Language",ic:"chat",title:"Describe a Great Cook",task:"3d-cook",build(b){b.innerHTML=stepShell("Functional Language","chat","Describe a Great Cook","Build the story with relative clauses — could your cook win Bake Off?")+taskCard();engGaps($(".task-zone",b),{id:"3d-cook",items:COOK3D});}},
-{tag:"Case Decision",ic:"wallet",title:"The £25 Canteen Shop",task:"3d-shop",build(b){b.innerHTML=stepShell("Case Decision","wallet","The £25 Canteen Shop","Adapted activity-bank practice: shopping lists and a cooking race. Fill the trolley — then name your menu.")+`<div class="card"><div class="task-zone"></div></div>`;buildShop($(".task-zone",b));}}
+{tag:"Case Decision",ic:"wallet",title:"The £25 Canteen Shop",task:"3d-shop",build(b){b.innerHTML=stepShell("Project Deliverable","wallet","Carbon-Aware Procurement Plan","Choose quantities for the sample canteen basket. Compare illustrative prices with category-level carbon factors, and document the supplier details you still need to verify.")+`<div class="card"><div class="task-zone"></div></div>`;buildSmartProcurement($(".task-zone",b));}}
 ]},
 {code:"3E",theme:"3e",img:"l3e",title:"Spread the Word",badge:4,sub:"Writing & Functional Language • Project Launch",problem:"The Green Canteen launches next week — but nobody knows yet! Write the <b>note, announcement and messages</b> that get everyone through the door.",objectives:{content:["Organise a real launch event","Turn case decisions into public communication"],language:["Abbreviations & ellipsis","Short texts with a clear purpose","Responding to messages"]},quote:{who:"sam",text:"Best poster on the noticeboard. Half-sugar cake AND a recycling station? Count me in."},steps:[
 {tag:"Vocabulary",ic:"note",title:"Abbreviations",task:"3e-abbr",build(b){b.innerHTML=stepShell("Vocabulary","note","Abbreviations","Match the short forms to their full meanings.")+taskCard();engMatch($(".task-zone",b),{id:"3e-abbr",pairs:ABBR3E});}},
