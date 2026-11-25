@@ -99,6 +99,7 @@ dessert:U("photo-1551024506-0bccd828d307",500),
 steak:U("photo-1546833999-b9f581a1996d",500),
 veg:U("photo-1498837167922-ddd27525d352",500),
 water:U("photo-1523362628745-0c100150b504",500),
+athlete:U("photo-1531415074968-036ba1b575da",500),
 potatoes:U("photo-1518977676601-b53f82aba655",500),
 crisps:U("photo-1566478989037-eec170784d0b",500),
 cola:U("photo-1554866585-cd94860890b7",500),
@@ -364,7 +365,7 @@ function engGapsStepped(zone,cfg){
  let i=0,score=0,err=0,earned=0,log=[];
  function show(){
   if(i>=cfg.items.length){completeTask(cfg.id,{score,max:cfg.items.length,errors:err,xp:earned+(err===0?15:0),log},zone);return;}
-  const it=cfg.items[i],opts=shuffle(it.opts),art=["food","veg","salad","lemon"][i%4];
+  const it=cfg.items[i],opts=shuffle(it.opts),art=cfg.image||["food","veg","salad","lemon"][i%4];
   zone.innerHTML='<div class="progress-line"><i style="width:'+(i/cfg.items.length*100)+'%"></i></div><div class="qcard"><div class="small muted">REPORT QUESTION '+(i+1)+' / '+cfg.items.length+'</div><div class="fad-passage-layout"><div>'+readingIllustrationV11(art,"Fresh food","Food in context.")+'</div><div><div class="qtext">'+it.pre+' <span class="gap">________</span> '+(it.post||"")+'</div><p class="small muted">Choose the correct quantifier.</p><div class="fca-option-grid" id="gapChoices">'+opts.map(o=>'<button class="chip" data-v="'+esc(o)+'">'+esc(o)+'</button>').join("")+'</div><div id="gapFeedback" class="fad-feedback"></div></div></div><div class="footer-bar"><span class="small muted">'+i+' / '+cfg.items.length+'</span><button class="btn btn-gold" id="gapContinue" disabled>Continue '+icon("right")+'</button></div></div>';
   let locked=false;
   $("#gapChoices",zone).addEventListener("click",e=>{const btn=e.target.closest(".chip");if(!btn||locked||btn.disabled)return;if(Array.isArray(it.ans)?it.ans.includes(btn.dataset.v):btn.dataset.v===it.ans){locked=true;score++;earned+=10;noteAnswer(true,e,10);btn.classList.add("picked-good");$("#gapFeedback",zone).textContent="Correct. Add this sentence to the report.";$("#gapChoices",zone).querySelectorAll("button").forEach(x=>x.disabled=true);$("#gapContinue",zone).disabled=false;log.push({q:it.pre+" ___ "+(it.post||""),user:btn.dataset.v,ok:true});}else{err++;btn.disabled=true;btn.classList.add("picked-bad");noteAnswer(false,e);$("#gapFeedback",zone).textContent="Not quite. Check whether the noun is countable or uncountable and try again.";log.push({q:it.pre+" ___ "+(it.post||""),user:btn.dataset.v,ok:false,focus:it.expl});}});
@@ -415,13 +416,27 @@ function buildFadComparison(b){
  }
  show();
 }
+const ATHLETE3B=[
+{pre:"How ",post:" calories do professional athletes need to eat every day?",opts:["much","many","a lot of"],ans:"a lot of",expl:"Use a lot of in a positive statement about a large quantity."},
+{pre:"Do they drink ",post:" water?",opts:["much","a few","many"],ans:"much",expl:"Water is uncountable."},
+{pre:"We have answers for you, and ",post:" of them may be surprising.",opts:["a few","much","a little"],ans:"a few",expl:"Answers are countable plural nouns."},
+{pre:"A marathon runner needs ",post:" more — around 3,000 calories per race.",opts:["a little","many","much"],ans:"much",expl:"Much more is used before a comparative quantity."},
+{pre:"Federer drinks ",post:" fresh orange juice as part of his healthy breakfast.",opts:["any","some","a few"],ans:"some",expl:"Some is used in a positive statement with an uncountable noun."},
+{pre:"After a match, he needs ",post:" carbohydrates for energy.",opts:["a lot of","much","any"],ans:"a lot of",expl:"Carbohydrates is a countable plural noun in a positive statement."},
+{pre:"He also drinks ",post:" energy drinks during a match.",opts:["much","some","a little"],ans:"some",expl:"Energy drinks is countable plural."},
+{pre:"Does Federer eat ",post:" snacks?",opts:["any","some","much"],ans:"any",expl:"Any is usual in questions about countable plural nouns."},
+{pre:"Like ",post:" tennis players, he has a banana between games.",opts:["a lot of","a little","any"],ans:"a lot of",expl:"A lot of is used with plural countable nouns."},
+{pre:"He sometimes eats ",post:" chocolate or ice cream for dessert.",opts:["a few","a little","many"],ans:"a little",expl:"Chocolate and ice cream are uncountable here."},
+{pre:"It is not true that top athletes can't have ",post:" unhealthy food.",opts:["any","many","a few"],ans:"any",expl:"Food is uncountable in this sentence."}
+];
 function buildHealthyQuestionnaire(zone){
  const qs=[
-  {q:"_____ glasses of water do you drink in a day?",g:"How many",opts:["one","a lot","none"],image:"water"},
-  {q:"_____ cola do you drink a day?",g:"How much",opts:["a lot","a little","none"],image:"lemon"},
-  {q:"_____ sweets do you eat in a week?",g:"How many",opts:["a lot","a few","none"],image:"food"},
-  {q:"_____ portions of fruit and vegetables do you eat each day?",g:"How many",opts:["five or six portions","two or three","none"],image:"veg"},
-  {q:"_____ junk food do you eat in a week?",g:"How much",opts:["a lot","a little","none"],image:"salad"}
+  {q:"_____ do you eat for breakfast?",g:"How much",opts:["nothing","just some cereal","a lot of fruit"],image:"breakfast"},
+  {q:"_____ cola do you drink a day?",g:"How much",opts:["a lot","a little","none"],image:"cola"},
+  {q:"_____ portions of fruit and vegetables do you eat in a day?",g:"How many",opts:["none","two or three","five or more"],image:"veg"},
+  {q:"_____ glasses of water do you drink in a day?",g:"How many",opts:["one","three","more than five"],image:"water"},
+  {q:"_____ meals do you miss in a week?",g:"How many",opts:["a lot","a few","none"],image:"bread"},
+  {q:"_____ junk food do you eat in a week?",g:"How much",opts:["five or six portions","two portions","none"],image:"burger"}
  ];
  let i=0,answers=[],grammarScore=0;
  zone.innerHTML='<div class="card soft"><p><b>Workbook · Healthy Eating Questionnaire</b></p><p>Choose <b>How much</b> or <b>How many</b>, then select the answer that describes your own habits. This is a self-assessment: there are no right or wrong lifestyle answers.</p></div><div id="hqStage"></div>';
@@ -543,6 +558,7 @@ const LESSONS=[
  function itemsLabel(kind,i){return (kind==="def"?defs:sentences)[i];}
  defsZone.addEventListener("click",check);sentZone.addEventListener("click",check);
 }},
+{tag:"Workbook · Grammar",ic:"activity",title:"Eat like an Athlete",task:"3b-athlete",build(b){b.innerHTML=stepShell("Workbook · Exercise 4","activity","Eat like an Athlete","Complete the original Workbook text. Choose the determiner that fits each sentence; the full passage is presented one gap at a time.")+`<div class="card soft" style="margin-bottom:14px"><div class="fad-passage-layout">${imgHTML("athlete","Athlete training","A professional athlete in training.","activity",false)}<div><b>Workbook · p. 21</b><p class="small muted">Read the complete context around each gap. The exercise focuses on countable and uncountable nouns and quantifiers.</p></div></div></div><div class="task-zone"></div>`;engGapsStepped($(".task-zone",b),{id:"3b-athlete",image:"athlete",items:ATHLETE3B});}},
 {tag:"Workbook · Self-assessment",ic:"clipboard-list",title:"Healthy Eating Questionnaire",task:"3b-health-questionnaire",build(b){b.innerHTML=stepShell("Workbook · p. 21","clipboard-list","Healthy Eating Questionnaire","Use How much / How many, answer the six questions honestly, then write about your breakfast.")+`<div class="card"><div class="task-zone"></div></div>`;buildHealthyQuestionnaire($(".task-zone",b));}},
 {tag:"Project Extension",ic:"messages-square",title:"Client Food Survey",task:"3b-client-interview",build(b){b.innerHTML=stepShell("Project Extension","messages-square","Client Food Survey","Interview the three clients and file the information for your nutrition report.")+`<div class="card"><div class="task-zone"></div></div>`;buildSurvey($(".task-zone",b));}},
 {tag:"Case Decision",ic:"heart",title:"Jordan's Health Plan",task:"3b-plan",build(b){b.innerHTML=stepShell("Case Decision","heart","Jordan's Health Plan","Recommend exactly TWO realistic changes for Jordan.")+taskCard();engMulti($(".task-zone",b),{id:"3b-plan",k:2,opts:PLAN3B,hint:"Use the evidence: no vegetables, lots of sugar, lots of sport."});}}
