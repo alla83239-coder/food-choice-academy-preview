@@ -574,6 +574,72 @@ function buildCanteenMenu(zone){
 }
 
 
+
+function buildNutritionAnalysis(zone){
+ const saved=S.nutritionAnalysis&&S.nutritionAnalysis.rows||[];
+ const rows=Array.from({length:8},function(_,i){return saved[i]||{name:"",grams:"",kcal:"",protein:"",carbs:"",fat:"",fibre:""};});
+ zone.innerHTML='<div class="card reading"><div class="tag">Project calculation · Use verified food data</div><h3 style="margin:12px 0 8px">Calculate nutrients in one student’s menu</h3><p>Break your menu recipes into ingredients. For each ingredient, enter the amount used for one student and the nutrition values per 100 g in the same form (raw or cooked) as the amount you weighed. Use a food-composition database or the product label; do not guess values.</p><div class="gnote"><span>'+icon("calculator")+'</span><span><b>Calculation:</b> nutrient in portion = nutrient per 100 g × portion grams ÷ 100. Energy from macros: protein 4 kcal/g, carbohydrate 4 kcal/g and fat 9 kcal/g.</span></div><div class="source-links"><b>Suggested data sources</b><p><a href="https://www.gov.uk/government/publications/composition-of-foods-integrated-dataset-cofid" target="_blank" rel="noopener">UK CoFID · Composition of Foods Integrated Dataset</a></p><p><a href="https://fdc.nal.usda.gov/" target="_blank" rel="noopener">USDA FoodData Central</a></p><p class="small muted">For packaged products, use the label for the exact product. For recipes, calculate each ingredient separately and use cooked values when the portion is weighed cooked.</p></div></div>'+
+ '<div class="card"><div class="table-scroll"><table class="gtable nutrition-entry-table"><thead><tr><th>Ingredient</th><th>Portion (g)</th><th>Energy kcal / 100 g</th><th>Protein g / 100 g</th><th>Carbs g / 100 g</th><th>Fat g / 100 g</th><th>Fibre g / 100 g</th></tr></thead><tbody id="nutritionRows">'+rows.map(function(r,i){return '<tr><td><input class="nutrient-input" data-i="'+i+'" data-key="name" type="text" maxlength="48" placeholder="e.g. cooked lentils" value="'+esc(r.name||"")+'" style="min-width:140px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="grams" type="number" min="0" max="2000" step="1" value="'+esc(String(r.grams??""))+'" style="width:76px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="kcal" type="number" min="0" max="1000" step="0.1" value="'+esc(String(r.kcal??""))+'" style="width:82px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="protein" type="number" min="0" max="100" step="0.1" value="'+esc(String(r.protein??""))+'" style="width:78px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="carbs" type="number" min="0" max="100" step="0.1" value="'+esc(String(r.carbs??""))+'" style="width:78px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="fat" type="number" min="0" max="100" step="0.1" value="'+esc(String(r.fat??""))+'" style="width:78px"></td><td><input class="nutrient-input" data-i="'+i+'" data-key="fibre" type="number" min="0" max="100" step="0.1" value="'+esc(String(r.fibre??""))+'" style="width:78px"></td></tr>';}).join("")+'</tbody></table></div><div class="footer-bar"><span class="small muted" id="nutritionInputStatus">Enter at least four verified ingredients.</span><button type="button" class="btn btn-gold" id="nutritionCalculate">Calculate and save analysis '+icon("check")+'</button></div></div>'+
+ '<div class="card soft"><h3>Results</h3><div id="nutritionResults"><p class="small muted">Your totals and macronutrient energy percentages will appear here after calculation.</p></div></div>';
+ const resultBox=$("#nutritionResults",zone),status=$("#nutritionInputStatus",zone);
+ function collect(){
+  const inputRows=[];
+  for(let i=0;i<rows.length;i++){
+   const row={};
+   $$('.nutrient-input[data-i="'+i+'"]',zone).forEach(function(el){row[el.dataset.key]=el.value.trim();});
+   rows[i]=row;
+   const hasAny=Object.values(row).some(function(v){return String(v||"").trim()!=="";});
+   if(hasAny)inputRows.push({index:i,row:row});
+  }
+  const valid=inputRows.filter(function(x){
+   const r=x.row;
+   return r.name&&["grams","kcal","protein","carbs","fat","fibre"].every(function(k){return r[k]!==""&&Number.isFinite(Number(r[k]))&&Number(r[k])>=0;})&&Number(r.grams)>0;
+  });
+  return {inputRows:inputRows,valid:valid};
+ }
+ function calculate(){
+  const data=collect(),valid=data.valid;
+  let totals={grams:0,kcal:0,protein:0,carbs:0,fat:0,fibre:0};
+  valid.forEach(function(x){
+   const r=x.row,g=Number(r.grams)/100;
+   totals.grams+=Number(r.grams);totals.kcal+=Number(r.kcal)*g;
+   totals.protein+=Number(r.protein)*g;totals.carbs+=Number(r.carbs)*g;
+   totals.fat+=Number(r.fat)*g;totals.fibre+=Number(r.fibre)*g;
+  });
+  const energy={protein:totals.protein*4,carbs:totals.carbs*4,fat:totals.fat*9};
+  const macroEnergy=energy.protein+energy.carbs+energy.fat;
+  const pct={protein:macroEnergy?energy.protein/macroEnergy*100:0,carbs:macroEnergy?energy.carbs/macroEnergy*100:0,fat:macroEnergy?energy.fat/macroEnergy*100:0};
+  const checks=[
+   {key:"carbs",label:"Carbohydrates",range:"45–65%",ok:pct.carbs>=45&&pct.carbs<=65,value:pct.carbs},
+   {key:"protein",label:"Protein",range:"10–30%",ok:pct.protein>=10&&pct.protein<=30,value:pct.protein},
+   {key:"fat",label:"Total fat",range:"25–35%",ok:pct.fat>=25&&pct.fat<=35,value:pct.fat}
+  ];
+  const complete=valid.length>=4&&valid.length===data.inputRows.length;
+  status.textContent=valid.length+" complete ingredient rows · "+data.inputRows.length+" started";
+  resultBox.innerHTML='<div class="project-summary-metrics"><div><b>'+totals.kcal.toFixed(0)+'</b><span>Estimated kcal</span></div><div><b>'+totals.protein.toFixed(1)+' g</b><span>Protein</span></div><div><b>'+totals.carbs.toFixed(1)+' g</b><span>Carbohydrates</span></div><div><b>'+totals.fat.toFixed(1)+' g</b><span>Total fat</span></div><div><b>'+totals.fibre.toFixed(1)+' g</b><span>Fibre</span></div><div><b>'+totals.grams.toFixed(0)+' g</b><span>Total food weight</span></div></div><h4>Share of energy from macronutrients</h4>'+checks.map(function(c){return '<div class="constraint'+(c.ok?' met':'')+'">'+icon(c.ok?'check':'alert-circle')+' '+c.label+': <b>'+c.value.toFixed(1)+'%</b> · reference '+c.range+'</div>';}).join("")+'<p class="small muted">Percentages are calculated from Atwater factors (4 kcal/g for protein and carbohydrate; 9 kcal/g for fat), then normalised to the energy supplied by these three macronutrients. This is a menu-analysis exercise, not an individual dietary prescription. Macro-derived energy can differ from the sum of food-label kcal because of fibre, rounding and food-specific factors.</p>'+(complete?'<span class="badge">Four or more complete ingredient rows entered</span>':'<p class="small" style="color:var(--danger)">Complete at least four ingredient rows. Finish every field in any row you have started.</p>');
+  return {data:data,valid:valid,totals:totals,energy:energy,pct:pct,checks:checks,complete:complete};
+ }
+ zone.addEventListener("input",function(e){if(e.target.matches(".nutrient-input"))calculate();});
+ $("#nutritionCalculate",zone).addEventListener("click",function(e){
+  const result=calculate();
+  if(!result.complete){toast("Complete at least four ingredient rows and all nutrient fields.","info");return;}
+  const rowsSaved=result.valid.map(function(x){return {name:x.row.name,grams:Number(x.row.grams),kcalPer100g:Number(x.row.kcal),proteinPer100g:Number(x.row.protein),carbsPer100g:Number(x.row.carbs),fatPer100g:Number(x.row.fat),fibrePer100g:Number(x.row.fibre)};});
+  S.nutritionAnalysis={rows:rowsSaved,totals:result.totals,energyFromMacros:result.energy,percentages:result.pct,amdrChecks:result.checks,withinAMDR:result.checks.every(function(c){return c.ok;}),calculation:"Per-100-g values × portion grams / 100; Atwater factors 4/4/9.",sourceNote:"Values entered by the learner from CoFID, USDA FoodData Central or product labels.",createdAt:Date.now()};
+  save();
+  const met=result.checks.filter(function(c){return c.ok;}).length;
+  completeTask("3b-nutrition-calc",{score:result.valid.length>=4?4:0,max:4,errors:0,xp:40,log:[
+   {q:"At least four ingredients entered with sources",user:rowsSaved.length+" ingredients",correct:"4 or more verified ingredient rows",ok:true},
+   {q:"Total energy calculated",user:result.totals.kcal.toFixed(0)+" kcal",correct:"Calculated from the entered food data",ok:true},
+   {q:"Macronutrient energy percentages calculated",user:"Carbs "+result.pct.carbs.toFixed(1)+"%; protein "+result.pct.protein.toFixed(1)+"%; fat "+result.pct.fat.toFixed(1)+"%",correct:"Calculated using 4/4/9 kcal per gram",ok:true},
+   {q:"Compared with adolescent AMDR ranges",user:met+"/3 within reference ranges",correct:"Carbs 45–65%; protein 10–30%; fat 25–35%",ok:true}
+  ]},zone);
+  const note=document.createElement("div");note.className="outcome";
+  note.innerHTML='<span class="tag">'+icon("check")+' Nutrition analysis saved</span><h3>'+(result.checks.every(function(c){return c.ok;})?"All three AMDR checks are within range":"Review the menu balance")+'</h3><p>Energy: '+result.totals.kcal.toFixed(0)+' kcal · Protein: '+result.totals.protein.toFixed(1)+' g · Carbohydrates: '+result.totals.carbs.toFixed(1)+' g · Fat: '+result.totals.fat.toFixed(1)+' g</p><p>Carbohydrates '+result.pct.carbs.toFixed(1)+'% · Protein '+result.pct.protein.toFixed(1)+'% · Fat '+result.pct.fat.toFixed(1)+'% of energy from the three macronutrients.</p><p class="small muted">Use the result as a sample menu analysis. Check portion sizes, full-day context and the quality of every data source before making health claims.</p>';
+  zone.appendChild(note);
+ });
+ calculate();
+}
+
 function buildCarbonFootprint(zone){
  const foods=[
   {id:"beef",name:"Beef (beef herd)",factor:99.48,group:"Protein"},
@@ -884,7 +950,8 @@ const LESSONS=[
 }},
 {tag:"Workbook · Self-assessment",ic:"clipboard-list",title:"Healthy Eating Questionnaire",task:"3b-health-questionnaire",build(b){b.innerHTML=stepShell("Workbook · p. 21","clipboard-list","Healthy Eating Questionnaire","Use How much / How many, answer the six questions honestly, then write about your breakfast.")+`<div class="card"><div class="task-zone"></div></div>`;buildHealthyQuestionnaire($(".task-zone",b));}},
 {tag:"Project Extension",ic:"messages-square",title:"Client Food Survey",task:"3b-client-interview",build(b){b.innerHTML=stepShell("Project Extension","messages-square","Client Food Survey","Interview the three clients and file the information for your nutrition report.")+`<div class="card"><div class="task-zone"></div></div>`;buildSurvey($(".task-zone",b));}},
-{tag:"Project Deliverable",ic:"utensils",title:"Build a Balanced Teen Menu",task:"3b-plan",build(b){b.innerHTML=stepShell("Project Deliverable","utensils","Build a Balanced Teen Menu","Create a one-day sample menu for teenagers aged 15–18. Balance starchy foods, useful protein, fruit and vegetables, unsaturated fats and drinks. Explain why your choices are suitable.")+`<div class="card"><div class="task-zone"></div></div>`;buildCanteenMenu($(".task-zone",b));}}
+{tag:"Project Deliverable",ic:"utensils",title:"Build a Balanced Teen Menu",task:"3b-plan",build(b){b.innerHTML=stepShell("Project Deliverable","utensils","Build a Balanced Teen Menu","Create a one-day sample menu for teenagers aged 15–18. Balance starchy foods, useful protein, fruit and vegetables, unsaturated fats and drinks. Explain why your choices are suitable.")+`<div class="card"><div class="task-zone"></div></div>`;buildCanteenMenu($(".task-zone",b));}},
+{tag:"Project Calculation",ic:"calculator",title:"Calculate Nutrients & Macronutrients",task:"3b-nutrition-calc",build(b){b.innerHTML=stepShell("Project Calculation","calculator","Calculate Nutrients & Macronutrients","Use verified composition data to calculate energy, protein, carbohydrates, fat and fibre in the ingredients used for one student’s menu. Then compare the energy distribution with the adolescent reference ranges.")+`<div class="card"><div class="task-zone"></div></div>`;buildNutritionAnalysis($(".task-zone",b));}}
 ]},
 {code:"3C",theme:"3c",img:"l3c",title:"The Vending Machine Challenge",badge:2,sub:"Listening & Functional Language • CLIL: Consumer Choices",problem:"The head teacher wants a <b>vending machine</b>. Four people describe their experience — then a supplier makes an offer you can't ignore.",objectives:{content:["Compare vending machines and their impact on eating habits","Weigh commercial offers against health and sustainability"],language:["Listening for key words","Indefinite pronouns: some-, any-, no-, every-","Inviting, accepting, refusing, re-suggesting"]},quote:{who:"harper",text:"Half healthy snacks and fresh fruit? The machine queue is longer than the canteen queue!"},steps:[
 {tag:"Listening",ic:"ear",title:"Key Words: Four Speakers",task:"3c-keys",build(b){b.innerHTML=stepShell("Listening","ear","Key Words: Four Speakers","Play the original recording, then identify the three key words for each speaker.")+`<div class="fca-audio-panel"><div><span class="tag">Original audio · Student’s Book Track 3.2</span><b>Listen before choosing</b><p class="small muted">Playback is manual. Nothing starts automatically.</p></div><audio controls preload="none" src="https://raw.githubusercontent.com/alla83239-coder/language-journey/main/courses/pre-intermediate/spoiled-for-choice/assets/audio/Insight2e_Preint_SB_Track_3.2.mp3"></audio></div><div class="card"><div class="task-zone"></div></div>`;buildKeywords($(".task-zone",b));}},
@@ -1668,7 +1735,7 @@ const FOOD_CHOICE_MISSIONS = [
  {title:"Packaging Policy Decision",subtitle:"Choose a lower-waste packaging strategy",chapter:"3A · Packaging Decision",image:"market",target:{l:0,s:2},brief:"Use the life-cycle evidence to compare packaging options and choose a defensible policy for the canteen.",requires:["3a-cycle"],decision:"pack"},
  {title:"Teen Nutrition Research",subtitle:"Establish evidence-based needs for ages 15–18",chapter:"3B · Nutrition Research",image:"l3b",target:{l:1,s:8},brief:"Investigate adolescent macronutrient reference ranges, reflect on food habits and collect student preferences to inform the canteen menu.",requires:["3b-athlete","3b-health-questionnaire","3b-client-interview"]},
  {title:"Nutrition Language Lab",subtitle:"Use quantities and determiners accurately",chapter:"3B · Language Focus",image:"grammar",target:{l:1,s:2},brief:"Practise the grammar needed to describe portions, quantities and food ingredients clearly in the nutrition report.",requires:["3b-gaps","3b-expert"]},
- {title:"Menu Design & Healthy Choices",subtitle:"Turn nutrition evidence into a practical menu",chapter:"3B · Menu Planning",image:"berries",target:{l:1,s:11},brief:"Use the nutrition research to create a practical one-day menu for teenagers. Select breakfast, lunch, a snack and a drink, then check the menu against the planning criteria.",requires:["3b-plan"]},
+ {title:"Menu Design & Healthy Choices",subtitle:"Turn nutrition evidence into a practical menu",chapter:"3B · Menu Planning",image:"berries",target:{l:1,s:11},brief:"Use the nutrition research to create a practical one-day menu for teenagers. Select breakfast, lunch, a snack and a drink, then check the menu against the planning criteria.",requires:["3b-plan","3b-nutrition-calc"]},
  {title:"Vending Machine & Smart Procurement",subtitle:"Choose stock, suppliers and a responsible assortment",chapter:"3C · Consumer Choices",image:"l3c",target:{l:2,s:0},brief:"Evaluate the vending-machine proposal, select suitable products, assess supplier terms and plan a healthy, affordable assortment with clear storage and replenishment rules.",requires:["3c-keys","3c-stat","3c-vending-stock"],decision:"vend"},
  {title:"Keep Talking",subtitle:"Negotiate with suppliers in English",chapter:"3C · Functional Language",image:"chat",target:{l:2,s:4},brief:"Practise indefinite pronouns, invitations, polite refusals and alternative suggestions for supplier and customer communication.",requires:["3c-pro","3c-invite"]},
  {title:"Junk Food Investigation",subtitle:"Read critically and inspect packaging",chapter:"3D · Junk Food Heaven",image:"burger",target:{l:3,s:0},brief:"Analyse the writer’s viewpoint, then build accurate vocabulary for food containers.",requires:["3d-read","3d-cont"]},
